@@ -1,6 +1,7 @@
 "use client";
 
 import { Header } from "@/components/layout/Header";
+import { ActivityChart } from "@/components/dashboard/ActivityChart";
 import { Users, Sparkles, Clock, CheckCircle, TrendingUp, AlertTriangle, MoreHorizontal, ArrowUp, Filter, Download } from "lucide-react";
 
 export default function Dashboard() {
@@ -75,8 +76,8 @@ export default function Dashboard() {
                 <option>This Quarter</option>
               </select>
             </div>
-            <div className="h-64 w-full bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-400">
-              [Chart Placeholder - Requires Chart.js Integration]
+            <div className="h-80 w-full rounded-lg">
+              <ActivityChart />
             </div>
           </div>
 

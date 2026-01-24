@@ -36,6 +36,9 @@ yarn-error.log*
 # claude code
 .claude/
 
+# design mockups
+.designs/
+
 # vercel
 .vercel
 
