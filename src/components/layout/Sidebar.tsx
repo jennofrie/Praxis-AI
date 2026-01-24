@@ -41,10 +41,10 @@ export function Sidebar() {
       {/* Brand */}
       <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 lg:border-none">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
+          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
             <Infinity className="w-5 h-5" />
           </div>
-          <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Quantum</span>
+          <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Spectra Praxis</span>
         </div>
       </div>
 
