@@ -1,9 +1,12 @@
 "use client";
 
 import { Header } from "@/components/layout/Header";
-import { Badge, Settings, Users, CreditCard, Puzzle, ShieldCheck, ChevronRight, Server, Database, Brain } from "lucide-react";
+import { Badge, Settings, Users, CreditCard, Puzzle, ShieldCheck, ChevronRight, Server, Database, Brain, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function GeneralSettings() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <>
       <Header title="General Settings" />
@@ -30,6 +33,85 @@ export default function GeneralSettings() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 pb-12">
             {/* LEFT COLUMN (Main Settings) */}
             <div className="lg:col-span-8 space-y-6">
+              {/* Card: Theme Settings */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center gap-2">
+                    {theme === "dark" ? (
+                      <Moon className="text-indigo-600 w-5 h-5" />
+                    ) : (
+                      <Sun className="text-amber-500 w-5 h-5" />
+                    )}
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Theme Settings</h3>
+                  </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Customize the appearance of the application interface.</p>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Light Mode Option */}
+                    <button
+                      onClick={() => setTheme("light")}
+                      className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all cursor-pointer ${
+                        theme === "light"
+                          ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      }`}
+                    >
+                      {theme === "light" && (
+                        <div className="absolute top-3 right-3">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white">
+                            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </span>
+                        </div>
+                      )}
+                      <div className="w-16 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shadow-sm">
+                        <Sun className="w-6 h-6 text-amber-500" />
+                      </div>
+                      <div className="text-center">
+                        <span className={`text-sm font-semibold ${theme === "light" ? "text-indigo-600" : "text-slate-900 dark:text-white"}`}>
+                          Light Mode
+                        </span>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Default appearance</p>
+                      </div>
+                    </button>
+
+                    {/* Night Mode Option */}
+                    <button
+                      onClick={() => setTheme("dark")}
+                      className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all cursor-pointer ${
+                        theme === "dark"
+                          ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      }`}
+                    >
+                      {theme === "dark" && (
+                        <div className="absolute top-3 right-3">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white">
+                            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </span>
+                        </div>
+                      )}
+                      <div className="w-16 h-12 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center shadow-sm">
+                        <Moon className="w-6 h-6 text-indigo-400" />
+                      </div>
+                      <div className="text-center">
+                        <span className={`text-sm font-semibold ${theme === "dark" ? "text-indigo-600 dark:text-indigo-400" : "text-slate-900 dark:text-white"}`}>
+                          Night Mode
+                        </span>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Dark appearance</p>
+                      </div>
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-4 text-center">
+                    Your preference will be saved automatically and applied across all devices.
+                  </p>
+                </div>
+              </div>
+
               {/* Card: Organization Details */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                 <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
@@ -38,11 +120,11 @@ export default function GeneralSettings() {
                 </div>
                 <div className="p-6 space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <InputGroup label="Company Name" value="Quantum Therapy Services" />
+                    <InputGroup label="Company Name" value="Praxis Therapy Services" />
                     <InputGroup label="ABN" value="12 345 678 901" />
                   </div>
                   <InputGroup label="Address" value="123 Health Way, Melbourne VIC 3000" />
-                  <InputGroup label="Contact Email" value="admin@quantumtherapy.com.au" type="email" />
+                  <InputGroup label="Contact Email" value="admin@praxistherapy.com.au" type="email" />
                 </div>
               </div>
 
