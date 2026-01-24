@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quantum Toolkit - General Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4F46E5", // Indigo-600
+                        "primary-light": "#E0E7FF",
+                        "primary-hover": "#4338ca", // Added for general.html specific buttons
+                        "background-light": "#F3F4F6", // Gray-100/50 mix basically
+                        "background-dark": "#0F172A", // Slate-900
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B", // Slate-800
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#334155",
+                        "text-main-light": "#111827",
+                        "text-main-dark": "#F8FAFC",
+                        "text-sub-light": "#6B7280",
+                        "text-sub-dark": "#94A3B8",
+                        "text-primary": "#111827", // Alias for compatibility
+                        "text-secondary": "#6B7280", // Alias
+                        "card-light": "#FFFFFF", // Alias
+                        "card-dark": "#1E293B", // Alias
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem", // 12px
+                        "xl": "1rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4F46E5;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4F46E5;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col h-full flex-shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark lg:border-none">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                <span class="material-icons-round text-xl">all_inclusive</span>
+            </div>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Quantum</span>
+        </div>
+    </div>
+    <div class="px-5 mt-4 mb-2">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-icons-round text-gray-400 text-sm">search</span>
+            </span>
+            <input class="w-full bg-gray-50 dark:bg-slate-700/50 border-none rounded-lg py-2 pl-9 pr-3 text-sm text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-primary placeholder-gray-400 dark:placeholder-slate-500" placeholder="Search data..." type="text"/>
+            <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <span class="text-gray-400 text-xs border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5">⌘K</span>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Clinical Workflow</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="dashboard.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="font-medium text-sm">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="participants.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">people</span>
+                        <span class="font-medium text-sm">Participants</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="reports.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">assignment</span>
+                        <span class="font-medium text-sm">Reports &amp; Docs</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ai.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">psychology</span>
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="ml-auto bg-indigo-100 dark:bg-indigo-900/40 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="toolkit.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">construction</span>
+                        <span class="font-medium text-sm">Toolkit</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Compliance</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">verified_user</span>
+                        <span class="font-medium text-sm">Audits</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ndisplans.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">history_edu</span>
+                        <span class="font-medium text-sm">NDIS Plans</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Settings</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 bg-primary/10 text-primary rounded-DEFAULT group" href="general.html">
+                        <span class="material-icons-round text-[20px] settings">settings</span>
+                        <span class="font-medium text-sm">General</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">help_outline</span>
+                        <span class="font-medium text-sm">Help Center</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="p-4 border-t border-border-light dark:border-border-dark">
+        <a href="profile.html" class="flex items-center gap-3 w-full hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-colors">
+            <img alt="User avatar" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3PRJomuYWo10PIj-wZ4oATztLJHU09M0yzJNrEj9PExcDf5irhFSknCmiKVhIpHuE4326mJFaMwoiucPKgNbVWJYxfzdkmyA-t4lIl6dIWQMk6zReuWABMGjJb68EgIVNIwi_wIUQVkBLhK3I9Gt-mQSt3N1NR1couViFXGZXp6c9r1JSV1qz03QqNMe4LrKh9goVNRi7QBvro3HK6SDVnBkcQwmT3-bgiNqy6TS7PRK8rgX7QlIiZMYr0io3FhCbpUqj8sqRCIs"/>
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Sarah Chen</p>
+                <p class="text-xs text-text-sub-light dark:text-text-sub-dark">Senior OT</p>
+            </div>
+        </a>
+    </div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-light dark:bg-background-dark">
+<header class="h-16 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 lg:px-8">
+<h1 class="text-xl font-bold text-gray-900 dark:text-white">General Settings</h1>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+<span class="material-icons-round text-[22px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+</button>
+<button class="p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors lg:hidden">
+<span class="material-icons-round text-[22px]">search</span>
+</button>
+<div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1 hidden lg:block"></div>
+<button class="hidden lg:flex items-center gap-2 text-sm text-text-sub-light dark:text-text-sub-dark hover:text-primary font-medium">
+<span class="material-icons-round text-sm">calendar_today</span>
+<span>Oct 24, 2023</span>
+<span class="material-icons-round text-sm">expand_more</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-4 md:p-8 lg:px-12">
+<div class="mx-auto max-w-7xl">
+<!-- Page Header Content -->
+<div class="flex flex-col gap-2 mb-8">
+<p class="text-text-secondary max-w-2xl">Manage your organization details, NDIS parameters, and system-wide preferences for clinical documentation.</p>
+</div>
+<!-- Tabs -->
+<div class="mb-8 border-b border-border-light dark:border-border-dark overflow-x-auto">
+<nav aria-label="Tabs" class="flex gap-8 min-w-max">
+<a class="border-b-2 border-primary pb-3 text-sm font-bold text-primary" href="#">
+                                General
+                            </a>
+<a class="border-b-2 border-transparent pb-3 text-sm font-medium text-text-secondary hover:text-text-primary hover:border-gray-300 transition-colors" href="#">
+                                Team Members
+                            </a>
+<a class="border-b-2 border-transparent pb-3 text-sm font-medium text-text-secondary hover:text-text-primary hover:border-gray-300 transition-colors" href="#">
+                                Billing &amp; Plans
+                            </a>
+<a class="border-b-2 border-transparent pb-3 text-sm font-medium text-text-secondary hover:text-text-primary hover:border-gray-300 transition-colors" href="#">
+                                Integrations
+                            </a>
+<a class="border-b-2 border-transparent pb-3 text-sm font-medium text-text-secondary hover:text-text-primary hover:border-gray-300 transition-colors" href="#">
+                                Security
+                            </a>
+</nav>
+</div>
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 pb-12">
+<!-- LEFT COLUMN (Main Settings) -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Card: Organization Details -->
+<div class="rounded-xl border border-border-light bg-white dark:bg-card-dark dark:border-border-dark shadow-sm">
+<div class="px-6 py-5 border-b border-border-light dark:border-border-dark">
+<h3 class="text-lg font-bold text-text-primary dark:text-white">Organization Details</h3>
+<p class="text-sm text-text-secondary mt-1">Update your clinic information for invoices and NDIS reports.</p>
+</div>
+<div class="p-6 space-y-5">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">Company Name</label>
+<input class="w-full rounded-lg border-gray-300 text-sm py-2.5 focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700 dark:text-white" type="text" value="Quantum Therapy Services"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">ABN</label>
+<input class="w-full rounded-lg border-gray-300 text-sm py-2.5 focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700 dark:text-white" type="text" value="12 345 678 901"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">Address</label>
+<input class="w-full rounded-lg border-gray-300 text-sm py-2.5 focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700 dark:text-white" type="text" value="123 Health Way, Melbourne VIC 3000"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">Contact Email</label>
+<input class="w-full rounded-lg border-gray-300 text-sm py-2.5 focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700 dark:text-white" type="email" value="admin@quantumtherapy.com.au"/>
+</div>
+</div>
+</div>
+<!-- Card: NDIS Configuration -->
+<div class="rounded-xl border border-border-light bg-white dark:bg-card-dark dark:border-border-dark shadow-sm">
+<div class="px-6 py-5 border-b border-border-light dark:border-border-dark flex items-center justify-between">
+<div>
+<h3 class="text-lg font-bold text-text-primary dark:text-white">NDIS Configuration</h3>
+<p class="text-sm text-text-secondary mt-1">Manage provider numbers and service categories.</p>
+</div>
+<span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Active Provider</span>
+</div>
+<div class="p-6 space-y-5">
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">Provider Number</label>
+<div class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="text-gray-500 material-symbols-outlined text-[20px]">badge</span>
+</div>
+<input class="block w-full rounded-lg border-gray-300 py-2.5 pl-10 text-sm focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700 dark:text-white" type="text" value="405000123"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">Registration Groups</label>
+<div class="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+<span class="inline-flex items-center gap-1 rounded bg-white dark:bg-gray-700 px-2 py-1 text-sm font-medium text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600">
+                                                Therapeutic Supports
+                                                <button class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20" type="button">
+<span class="sr-only">Remove</span>
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</span>
+<span class="inline-flex items-center gap-1 rounded bg-white dark:bg-gray-700 px-2 py-1 text-sm font-medium text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600">
+                                                Early Childhood Supports
+                                                <button class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20" type="button">
+<span class="sr-only">Remove</span>
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</span>
+<button class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm font-medium text-primary hover:bg-primary/10">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                                                Add Group
+                                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card: AI Settings -->
+<div class="rounded-xl border border-border-light bg-white dark:bg-card-dark dark:border-border-dark shadow-sm">
+<div class="px-6 py-5 border-b border-border-light dark:border-border-dark">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+<h3 class="text-lg font-bold text-text-primary dark:text-white">AI Documentation Settings</h3>
+</div>
+<p class="text-sm text-text-secondary mt-1">Configure how the AI assists with clinical notes and report generation.</p>
+</div>
+<div class="p-6 space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">AI Model</label>
+<select class="w-full rounded-lg border-gray-300 text-sm py-2.5 focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+<option>Clinical-LLM-v2 (Standard)</option>
+<option>Clinical-LLM-v2 (Enhanced)</option>
+<option>GPT-4 (Generic)</option>
+</select>
+</div>
+<div class="flex items-center justify-between pt-6">
+<div class="flex flex-col">
+<span class="text-sm font-medium text-text-primary dark:text-white">Auto-generate goals</span>
+<span class="text-xs text-text-secondary">Suggest GAS goals from notes</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">Confidence Threshold</label>
+<span class="text-sm font-bold text-primary">85%</span>
+</div>
+<input class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary dark:bg-gray-700" max="100" min="50" type="range" value="85"/>
+<p class="text-xs text-text-secondary">AI will flag suggestions below this confidence score for manual review.</p>
+</div>
+</div>
+</div>
+<!-- Card: Clinical Workflow -->
+<div class="rounded-xl border border-border-light bg-white dark:bg-card-dark dark:border-border-dark shadow-sm">
+<div class="px-6 py-5 border-b border-border-light dark:border-border-dark">
+<h3 class="text-lg font-bold text-text-primary dark:text-white">Clinical Workflow</h3>
+</div>
+<div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">Default Report Template</label>
+<select class="w-full rounded-lg border-gray-300 text-sm py-2.5 focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+<option>NDIS Standard Progress Report</option>
+<option>Initial Assessment</option>
+<option>Functional Capacity Assessment</option>
+</select>
+</div>
+<div class="space-y-1.5">
+<label class="text-sm font-medium text-text-primary dark:text-gray-200">Review Period</label>
+<select class="w-full rounded-lg border-gray-300 text-sm py-2.5 focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+<option>Quarterly (Every 3 months)</option>
+<option>Bi-Annual (Every 6 months)</option>
+<option>Annual (Every 12 months)</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="flex justify-end gap-3 pt-2">
+<button class="px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    Cancel
+                                </button>
+<button class="px-5 py-2.5 rounded-lg bg-primary text-sm font-semibold text-white shadow-sm hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                                    Save Changes
+                                </button>
+</div>
+</div>
+<!-- RIGHT COLUMN (Widgets) -->
+<div class="lg:col-span-4 space-y-6">
+<!-- Card: Storage Usage -->
+<div class="rounded-xl border border-border-light bg-white dark:bg-card-dark dark:border-border-dark shadow-sm p-6 flex flex-col gap-4">
+<h3 class="text-base font-bold text-text-primary dark:text-white">Storage Usage</h3>
+<div class="flex items-center gap-6">
+<!-- Simple CSS Donut Chart -->
+<div class="relative size-24 rounded-full flex items-center justify-center shrink-0" style="background: conic-gradient(#5048e5 24%, #e5e7eb 0);">
+<div class="size-20 bg-white dark:bg-card-dark rounded-full flex items-center justify-center">
+<span class="text-sm font-bold text-text-primary dark:text-white">24%</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-2xl font-bold text-text-primary dark:text-white">2.4 GB</span>
+<span class="text-sm text-text-secondary">of 10 GB used</span>
+<a class="text-sm font-medium text-primary hover:underline mt-1" href="#">Upgrade Plan</a>
+</div>
+</div>
+<div class="text-xs text-text-secondary bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
+                                    Your team uploads approx. 150MB of clinical docs per week.
+                                </div>
+</div>
+<!-- Card: System Status -->
+<div class="rounded-xl border border-border-light bg-white dark:bg-card-dark dark:border-border-dark shadow-sm">
+<div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
+<h3 class="text-base font-bold text-text-primary dark:text-white">System Status</h3>
+</div>
+<div class="divide-y divide-gray-100 dark:divide-gray-800">
+<div class="flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400">api</span>
+<span class="text-sm font-medium text-text-primary dark:text-gray-200">API Gateway</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs font-medium text-emerald-700 dark:text-emerald-400">Operational</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400">psychology</span>
+<span class="text-sm font-medium text-text-primary dark:text-gray-200">AI Engine</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs font-medium text-emerald-700 dark:text-emerald-400">Operational</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400">database</span>
+<span class="text-sm font-medium text-text-primary dark:text-gray-200">Database</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs font-medium text-emerald-700 dark:text-emerald-400">Operational</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card: Quick Links -->
+<div class="rounded-xl border border-border-light bg-white dark:bg-card-dark dark:border-border-dark shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-gray-800/50">
+<h3 class="text-base font-bold text-text-primary dark:text-white">Quick Links</h3>
+</div>
+<div class="flex flex-col">
+<a class="flex items-center justify-between px-6 py-3 text-sm text-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0" href="#">
+<span>Manage Users</span>
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</a>
+<a class="flex items-center justify-between px-6 py-3 text-sm text-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0" href="#">
+<span>View Invoices</span>
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</a>
+<a class="flex items-center justify-between px-6 py-3 text-sm text-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0" href="#">
+<span>Contact Support</span>
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

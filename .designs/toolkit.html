@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quantum Toolkit - Clinical Tools</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4F46E5", // Indigo-600
+                        "primary-light": "#E0E7FF",
+                        "background-light": "#F3F4F6", // Gray-100/50 mix basically
+                        "background-dark": "#0F172A", // Slate-900
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B", // Slate-800
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#334155",
+                        "text-main-light": "#111827",
+                        "text-main-dark": "#F8FAFC",
+                        "text-sub-light": "#6B7280",
+                        "text-sub-dark": "#94A3B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem", // 12px
+                        "xl": "1rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col h-full flex-shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark lg:border-none">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                <span class="material-icons-round text-xl">all_inclusive</span>
+            </div>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Quantum</span>
+        </div>
+    </div>
+    <div class="px-5 mt-4 mb-2">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-icons-round text-gray-400 text-sm">search</span>
+            </span>
+            <input class="w-full bg-gray-50 dark:bg-slate-700/50 border-none rounded-lg py-2 pl-9 pr-3 text-sm text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-primary placeholder-gray-400 dark:placeholder-slate-500" placeholder="Search data..." type="text"/>
+            <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <span class="text-gray-400 text-xs border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5">⌘K</span>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Clinical Workflow</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="dashboard.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="font-medium text-sm">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="participants.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">people</span>
+                        <span class="font-medium text-sm">Participants</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="reports.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">assignment</span>
+                        <span class="font-medium text-sm">Reports &amp; Docs</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ai.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">psychology</span>
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="ml-auto bg-indigo-100 dark:bg-indigo-900/40 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 bg-primary/10 text-primary rounded-DEFAULT group" href="toolkit.html">
+                        <span class="material-icons-round text-[20px] transition-colors">construction</span>
+                        <span class="font-medium text-sm">Toolkit</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Compliance</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">verified_user</span>
+                        <span class="font-medium text-sm">Audits</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ndisplans.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">history_edu</span>
+                        <span class="font-medium text-sm">NDIS Plans</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Settings</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="general.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">settings</span>
+                        <span class="font-medium text-sm">General</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">help_outline</span>
+                        <span class="font-medium text-sm">Help Center</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="p-4 border-t border-border-light dark:border-border-dark">
+        <a href="profile.html" class="flex items-center gap-3 w-full hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-colors">
+            <img alt="User avatar" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3PRJomuYWo10PIj-wZ4oATztLJHU09M0yzJNrEj9PExcDf5irhFSknCmiKVhIpHuE4326mJFaMwoiucPKgNbVWJYxfzdkmyA-t4lIl6dIWQMk6zReuWABMGjJb68EgIVNIwi_wIUQVkBLhK3I9Gt-mQSt3N1NR1couViFXGZXp6c9r1JSV1qz03QqNMe4LrKh9goVNRi7QBvro3HK6SDVnBkcQwmT3-bgiNqy6TS7PRK8rgX7QlIiZMYr0io3FhCbpUqj8sqRCIs"/>
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Sarah Chen</p>
+                <p class="text-xs text-text-sub-light dark:text-text-sub-dark">Senior OT</p>
+            </div>
+        </a>
+    </div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-light dark:bg-background-dark">
+<div class="flex-1 overflow-y-auto p-6 lg:p-8">
+<div class="container mx-auto max-w-7xl flex flex-col gap-8">
+<!-- Page Header -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="flex flex-col gap-2">
+<h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white md:text-4xl">Clinical Tools</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base max-w-2xl">
+                            Access AI-powered utilities to streamline your NDIS documentation and enhance client outcomes.
+                        </p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[18px]">history</span>
+                            Recent Activity
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                            Request Tool
+                        </button>
+</div>
+</header>
+<!-- Metrics Overview -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Metric 1 -->
+<div class="flex flex-col gap-1 p-5 bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Tools Active</p>
+<span class="material-symbols-outlined text-primary text-xl">dataset</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">12</p>
+<p class="text-xs text-green-600 flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> All systems operational
+                        </p>
+</div>
+<!-- Metric 2 -->
+<div class="flex flex-col gap-1 p-5 bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">AI Generations Today</p>
+<span class="material-symbols-outlined text-purple-500 text-xl">auto_awesome</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">143</p>
+<p class="text-xs text-green-600 flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span> +12% vs yesterday
+                        </p>
+</div>
+<!-- Metric 3 -->
+<div class="flex flex-col gap-1 p-5 bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Avg Processing Time</p>
+<span class="material-symbols-outlined text-amber-500 text-xl">speed</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">1.2s</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1">
+                            Stable performance
+                        </p>
+</div>
+<!-- Metric 4 -->
+<div class="flex flex-col gap-1 p-5 bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Success Rate</p>
+<span class="material-symbols-outlined text-green-500 text-xl">check_circle</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">99.8%</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1">
+                            Last 24 hours
+                        </p>
+</div>
+</section>
+<!-- Tools Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Card 1: Session Notes (Purple) -->
+<div class="group flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 size-14 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">mic</span>
+</div>
+<span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">AI-Powered</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Session Notes &amp; Enhancement</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-2 line-clamp-2">
+                            Convert shorthand observations into compliant SOAP notes instantly. Features voice-to-text integration and template matching.
+                        </p>
+<!-- Mini Stats Row -->
+<div class="mt-4 flex items-center gap-4 py-2 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">history</span> 45 generated this week
+                            </div>
+<div class="w-px h-3 bg-slate-300 dark:bg-slate-700"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">timer</span> ~30s saved/note
+                            </div>
+</div>
+<!-- Feature Checklist -->
+<ul class="mt-5 space-y-2 mb-6 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> SOAP &amp; DAP Formats
+                            </li>
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Voice Dictation
+                            </li>
+</ul>
+<div class="flex items-center gap-3 mt-auto">
+<button class="flex-1 bg-primary text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">Launch Tool</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+</div>
+<!-- Card 2: NDIS Goals (Blue) -->
+<div class="group flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 size-14 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">flag</span>
+</div>
+<span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Tracking</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">NDIS Goals &amp; Progress Tracking</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-2 line-clamp-2">
+                            Track client goals against NDIS outcomes framework. Visualize progress with automated charts and milestone predictions.
+                        </p>
+<!-- Mini Stats Row -->
+<div class="mt-4 flex items-center gap-4 py-2 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">group</span> 12 Active Clients
+                            </div>
+<div class="w-px h-3 bg-slate-300 dark:bg-slate-700"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">bar_chart</span> 98% Completion
+                            </div>
+</div>
+<ul class="mt-5 space-y-2 mb-6 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Outcome Mapping
+                            </li>
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Progress Visuals
+                            </li>
+</ul>
+<div class="flex items-center gap-3 mt-auto">
+<button class="flex-1 bg-primary text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">Launch Tool</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+</div>
+<!-- Card 3: Evidence Matrix (Green) -->
+<div class="group flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 size-14 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">grid_on</span>
+</div>
+<span class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Analysis</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Evidence Matrix &amp; Domain Mapping</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-2 line-clamp-2">
+                            Automatically map clinical observations to functional capacity domains. Identify gaps in evidence for plan reviews.
+                        </p>
+<div class="mt-4 flex items-center gap-4 py-2 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">checklist</span> 6 Domains Covered
+                            </div>
+</div>
+<ul class="mt-5 space-y-2 mb-6 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Gap Analysis
+                            </li>
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> FCA Support
+                            </li>
+</ul>
+<div class="flex items-center gap-3 mt-auto">
+<button class="flex-1 bg-primary text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">Launch Tool</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+</div>
+<!-- Card 4: AT Trial Tracker (Amber) -->
+<div class="group flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 size-14 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">devices</span>
+</div>
+<span class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Beta</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Assistive Technology Trial Tracker</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-2 line-clamp-2">
+                            Manage equipment trials, vendor quotes, and client feedback forms. Generate AT comparison tables instantly.
+                        </p>
+<div class="mt-4 flex items-center gap-4 py-2 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">shopping_cart</span> 3 Active Trials
+                            </div>
+</div>
+<ul class="mt-5 space-y-2 mb-6 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Quote Comparison
+                            </li>
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Feedback Forms
+                            </li>
+</ul>
+<div class="flex items-center gap-3 mt-auto">
+<button class="flex-1 bg-primary text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">Launch Tool</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+</div>
+<!-- Card 5: Team Collaboration (Pink) -->
+<div class="group flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 size-14 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">diversity_3</span>
+</div>
+<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Admin</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Team Collaboration &amp; Approvals</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-2 line-clamp-2">
+                            Streamline the report approval process with supervisors. Track edits, comments, and final sign-offs.
+                        </p>
+<div class="mt-4 flex items-center gap-4 py-2 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">pending_actions</span> 2 Pending Review
+                            </div>
+</div>
+<ul class="mt-5 space-y-2 mb-6 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Version Control
+                            </li>
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Supervisor Sign-off
+                            </li>
+</ul>
+<div class="flex items-center gap-3 mt-auto">
+<button class="flex-1 bg-primary text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">Launch Tool</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+</div>
+<!-- Card 6: AI Report Generator (Indigo) -->
+<div class="group flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 size-14 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">library_books</span>
+</div>
+<span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Popular</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">AI Report Generator</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-2 line-clamp-2">
+                            Draft comprehensive FCA and Plan Review reports by synthesizing session notes, assessments, and goal data.
+                        </p>
+<div class="mt-4 flex items-center gap-4 py-2 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">edit_document</span> 15 Drafted
+                            </div>
+<div class="w-px h-3 bg-slate-300 dark:bg-slate-700"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">bolt</span> High Speed
+                            </div>
+</div>
+<ul class="mt-5 space-y-2 mb-6 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> FCA Templates
+                            </li>
+<li class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check</span> Auto-Citation
+                            </li>
+</ul>
+<div class="flex items-center gap-3 mt-auto">
+<button class="flex-1 bg-primary text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">Launch Tool</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Status Footer -->
+<footer class="mt-auto">
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-xl">dns</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-200">AI Models Status</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-6">
+<div class="flex items-center gap-2">
+<div class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+</div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Gemini Pro: Operational</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-300 dark:bg-slate-600"></div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Ollama (Local): Idle</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="relative flex h-2.5 w-2.5">
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+</div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">System Health: 99%</span>
+</div>
+</div>
+<div class="text-xs text-slate-400 dark:text-slate-500">
+                            Latency: 45ms
+                        </div>
+</div>
+</footer>
+<div class="h-4"></div> <!-- Extra spacing at bottom -->
+</div>
+</div>
+</main>
+</div>
+</body></html>

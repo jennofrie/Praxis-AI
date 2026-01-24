@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quantum Toolkit - Clinical Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4F46E5", // Indigo-600
+                        "primary-light": "#E0E7FF",
+                        "background-light": "#F3F4F6", // Gray-100/50 mix basically
+                        "background-dark": "#0F172A", // Slate-900
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B", // Slate-800
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#334155",
+                        "text-main-light": "#111827",
+                        "text-main-dark": "#F8FAFC",
+                        "text-sub-light": "#6B7280",
+                        "text-sub-dark": "#94A3B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem", // 12px
+                        "xl": "1rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col h-full flex-shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark lg:border-none">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                <span class="material-icons-round text-xl">all_inclusive</span>
+            </div>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Quantum</span>
+        </div>
+    </div>
+    <div class="px-5 mt-4 mb-2">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-icons-round text-gray-400 text-sm">search</span>
+            </span>
+            <input class="w-full bg-gray-50 dark:bg-slate-700/50 border-none rounded-lg py-2 pl-9 pr-3 text-sm text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-primary placeholder-gray-400 dark:placeholder-slate-500" placeholder="Search data..." type="text"/>
+            <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <span class="text-gray-400 text-xs border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5">⌘K</span>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Clinical Workflow</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 bg-primary/10 text-primary rounded-DEFAULT group" href="dashboard.html">
+                        <span class="material-icons-round text-[20px]">dashboard</span>
+                        <span class="font-medium text-sm">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="participants.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">people</span>
+                        <span class="font-medium text-sm">Participants</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="reports.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">assignment</span>
+                        <span class="font-medium text-sm">Reports &amp; Docs</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ai.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">psychology</span>
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="ml-auto bg-indigo-100 dark:bg-indigo-900/40 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="toolkit.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">construction</span>
+                        <span class="font-medium text-sm">Toolkit</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Compliance</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">verified_user</span>
+                        <span class="font-medium text-sm">Audits</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ndisplans.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">history_edu</span>
+                        <span class="font-medium text-sm">NDIS Plans</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Settings</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="general.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">settings</span>
+                        <span class="font-medium text-sm">General</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">help_outline</span>
+                        <span class="font-medium text-sm">Help Center</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="p-4 border-t border-border-light dark:border-border-dark">
+        <a href="profile.html" class="flex items-center gap-3 w-full hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-colors">
+            <img alt="User avatar" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3PRJomuYWo10PIj-wZ4oATztLJHU09M0yzJNrEj9PExcDf5irhFSknCmiKVhIpHuE4326mJFaMwoiucPKgNbVWJYxfzdkmyA-t4lIl6dIWQMk6zReuWABMGjJb68EgIVNIwi_wIUQVkBLhK3I9Gt-mQSt3N1NR1couViFXGZXp6c9r1JSV1qz03QqNMe4LrKh9goVNRi7QBvro3HK6SDVnBkcQwmT3-bgiNqy6TS7PRK8rgX7QlIiZMYr0io3FhCbpUqj8sqRCIs"/>
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Sarah Chen</p>
+                <p class="text-xs text-text-sub-light dark:text-text-sub-dark">Senior OT</p>
+            </div>
+        </a>
+    </div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-light dark:bg-background-dark">
+<header class="h-16 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 lg:px-8">
+<h1 class="text-xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+<span class="material-icons-round text-[22px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+</button>
+<button class="p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors lg:hidden">
+<span class="material-icons-round text-[22px]">search</span>
+</button>
+<div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1 hidden lg:block"></div>
+<button class="hidden lg:flex items-center gap-2 text-sm text-text-sub-light dark:text-text-sub-dark hover:text-primary font-medium">
+<span class="material-icons-round text-sm">calendar_today</span>
+<span>Oct 24, 2023</span>
+<span class="material-icons-round text-sm">expand_more</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto p-6 lg:p-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-DEFAULT shadow-soft border border-border-light dark:border-border-dark flex flex-col justify-between h-full">
+<div class="flex items-start justify-between mb-4">
+<div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+<span class="material-icons-round">people_alt</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-text-sub-light dark:text-text-sub-dark mb-1">Active Participants</p>
+<h3 class="text-3xl font-bold text-gray-900 dark:text-white">127</h3>
+<div class="flex items-center gap-1 mt-2 text-sm text-green-600 dark:text-green-400 font-medium">
+<span class="material-icons-round text-sm">trending_up</span>
+<span>12%</span>
+<span class="text-text-sub-light dark:text-text-sub-dark font-normal ml-1">vs last month</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-DEFAULT shadow-soft border border-border-light dark:border-border-dark flex flex-col justify-between h-full">
+<div class="flex items-start justify-between mb-4">
+<div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-primary">
+<span class="material-icons-round">auto_awesome</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-text-sub-light dark:text-text-sub-dark mb-1">AI Processing Queue</p>
+<h3 class="text-3xl font-bold text-gray-900 dark:text-white">12</h3>
+<div class="flex items-center gap-1 mt-2 text-sm text-green-600 dark:text-green-400 font-medium">
+<span class="material-icons-round text-sm">check_circle</span>
+<span>Optimal</span>
+<span class="text-text-sub-light dark:text-text-sub-dark font-normal ml-1">load</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-DEFAULT shadow-soft border border-border-light dark:border-border-dark flex flex-col justify-between h-full">
+<div class="flex items-start justify-between mb-4">
+<div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+<span class="material-icons-round">timer</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-text-sub-light dark:text-text-sub-dark mb-1">Billable Hours</p>
+<h3 class="text-3xl font-bold text-gray-900 dark:text-white">34.5h</h3>
+<div class="flex items-center gap-1 mt-2 text-sm text-red-500 font-medium">
+<span class="material-icons-round text-sm">trending_down</span>
+<span>2.1%</span>
+<span class="text-text-sub-light dark:text-text-sub-dark font-normal ml-1">vs last week</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-DEFAULT shadow-soft border border-border-light dark:border-border-dark flex flex-col justify-between h-full">
+<div class="flex items-start justify-between mb-4">
+<div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+<span class="material-icons-round">task</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-text-sub-light dark:text-text-sub-dark mb-1">Pending Approvals</p>
+<h3 class="text-3xl font-bold text-gray-900 dark:text-white">5</h3>
+<div class="flex items-center gap-1 mt-2 text-sm text-text-sub-light dark:text-text-sub-dark">
+<span class="material-icons-round text-sm text-yellow-500">warning</span>
+<span>2 urgent</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<div class="lg:col-span-2 bg-surface-light dark:bg-surface-dark p-6 rounded-DEFAULT shadow-soft border border-border-light dark:border-border-dark">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Session Activity</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-2xl font-bold text-gray-900 dark:text-white">124</span>
+<span class="text-green-500 text-sm font-medium flex items-center">
+<span class="material-icons-round text-sm">arrow_upward</span> 15%
+                                    </span>
+<span class="text-text-sub-light dark:text-text-sub-dark text-sm">from last month</span>
+</div>
+</div>
+<select class="bg-gray-50 dark:bg-slate-700 border-none text-sm rounded-md px-3 py-1.5 text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-primary cursor-pointer">
+<option>Last 7 days</option>
+<option>Last 30 days</option>
+<option>This Quarter</option>
+</select>
+</div>
+<div class="h-64 w-full">
+<canvas id="mainChart"></canvas>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-6 rounded-DEFAULT shadow-soft border border-border-light dark:border-border-dark flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">AI Generation Status</h3>
+<button class="text-text-sub-light hover:text-primary">
+<span class="material-icons-round">more_horiz</span>
+</button>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<div class="mb-4">
+<div class="flex justify-between items-end mb-1">
+<span class="text-3xl font-bold text-gray-900 dark:text-white">892</span>
+<span class="text-sm text-text-sub-light dark:text-text-sub-dark mb-1">reports generated</span>
+</div>
+<div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="space-y-4 mt-2">
+<div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-slate-700/30">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+<span class="text-sm font-medium text-gray-700 dark:text-gray-200">Session Notes</span>
+</div>
+<span class="text-sm font-bold text-gray-900 dark:text-white">65%</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-slate-700/30">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-purple-500"></div>
+<span class="text-sm font-medium text-gray-700 dark:text-gray-200">Assessments</span>
+</div>
+<span class="text-sm font-bold text-gray-900 dark:text-white">25%</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-slate-700/30">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-orange-400"></div>
+<span class="text-sm font-medium text-gray-700 dark:text-gray-200">NDIS Plans</span>
+</div>
+<span class="text-sm font-bold text-gray-900 dark:text-white">10%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark rounded-DEFAULT shadow-soft border border-border-light dark:border-border-dark overflow-hidden">
+<div class="px-6 py-5 border-b border-border-light dark:border-border-dark flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Recent Reports</h3>
+<div class="hidden sm:flex bg-gray-100 dark:bg-slate-700/50 rounded-lg p-1 gap-1">
+<button class="px-3 py-1 bg-white dark:bg-slate-600 shadow-sm rounded-md text-xs font-medium text-gray-900 dark:text-white">All</button>
+<button class="px-3 py-1 text-xs font-medium text-text-sub-light dark:text-text-sub-dark hover:text-gray-900 dark:hover:text-white">Drafts</button>
+<button class="px-3 py-1 text-xs font-medium text-text-sub-light dark:text-text-sub-dark hover:text-gray-900 dark:hover:text-white">Completed</button>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 border border-border-light dark:border-border-dark rounded-md text-sm text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center gap-2">
+<span class="material-icons-round text-sm">filter_list</span> Filter
+                            </button>
+<button class="px-3 py-1.5 border border-border-light dark:border-border-dark rounded-md text-sm text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center gap-2">
+<span class="material-icons-round text-sm">download</span> Export
+                            </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-gray-50/50 dark:bg-slate-700/20 text-xs uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark border-b border-border-light dark:border-border-dark">
+<th class="px-6 py-4 font-semibold">Report Type</th>
+<th class="px-6 py-4 font-semibold">Participant</th>
+<th class="px-6 py-4 font-semibold">Date Generated</th>
+<th class="px-6 py-4 font-semibold text-center">AI Confidence</th>
+<th class="px-6 py-4 font-semibold">Status</th>
+<th class="px-6 py-4 font-semibold text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-light dark:divide-border-dark text-sm">
+<tr class="group hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded bg-indigo-50 dark:bg-indigo-900/20 text-primary">
+<span class="material-icons-round text-base">description</span>
+</div>
+<span class="font-medium text-gray-900 dark:text-white">Functional Capacity</span>
+</div>
+</td>
+<td class="px-6 py-4 text-gray-700 dark:text-gray-300">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">JD</div>
+                                            John Doe
+                                        </div>
+</td>
+<td class="px-6 py-4 text-text-sub-light dark:text-text-sub-dark">Oct 24, 10:30 AM</td>
+<td class="px-6 py-4">
+<div class="flex justify-center">
+<div class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50 px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
+<span class="material-icons-round text-[14px]">auto_awesome</span>
+                                                98%
+                                            </div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                            Under Review
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-sub-light hover:text-primary transition-colors">
+<span class="material-icons-round">edit</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded bg-indigo-50 dark:bg-indigo-900/20 text-primary">
+<span class="material-icons-round text-base">sticky_note_2</span>
+</div>
+<span class="font-medium text-gray-900 dark:text-white">Session Note</span>
+</div>
+</td>
+<td class="px-6 py-4 text-gray-700 dark:text-gray-300">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-600">MS</div>
+                                            Mary Smith
+                                        </div>
+</td>
+<td class="px-6 py-4 text-text-sub-light dark:text-text-sub-dark">Oct 23, 04:15 PM</td>
+<td class="px-6 py-4">
+<div class="flex justify-center">
+<div class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50 px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
+<span class="material-icons-round text-[14px]">auto_awesome</span>
+                                                94%
+                                            </div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                                            Approved
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-sub-light hover:text-primary transition-colors">
+<span class="material-icons-round">download</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded bg-indigo-50 dark:bg-indigo-900/20 text-primary">
+<span class="material-icons-round text-base">assignment</span>
+</div>
+<span class="font-medium text-gray-900 dark:text-white">AT Assessment</span>
+</div>
+</td>
+<td class="px-6 py-4 text-gray-700 dark:text-gray-300">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center text-xs font-bold text-pink-600">AL</div>
+                                            Alice Li
+                                        </div>
+</td>
+<td class="px-6 py-4 text-text-sub-light dark:text-text-sub-dark">Oct 23, 02:00 PM</td>
+<td class="px-6 py-4">
+<div class="flex justify-center">
+<div class="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-800/50 px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
+<span class="material-icons-round text-[14px]">auto_awesome</span>
+                                                76%
+                                            </div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                            Draft
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-sub-light hover:text-primary transition-colors">
+<span class="material-icons-round">edit</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors border-none">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded bg-indigo-50 dark:bg-indigo-900/20 text-primary">
+<span class="material-icons-round text-base">description</span>
+</div>
+<span class="font-medium text-gray-900 dark:text-white">Progress Report</span>
+</div>
+</td>
+<td class="px-6 py-4 text-gray-700 dark:text-gray-300">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center text-xs font-bold text-teal-600">RJ</div>
+                                            Raj Jones
+                                        </div>
+</td>
+<td class="px-6 py-4 text-text-sub-light dark:text-text-sub-dark">Oct 22, 11:45 AM</td>
+<td class="px-6 py-4">
+<div class="flex justify-center">
+<div class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50 px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
+<span class="material-icons-round text-[14px]">auto_awesome</span>
+                                                91%
+                                            </div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                                            Approved
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-sub-light hover:text-primary transition-colors">
+<span class="material-icons-round">download</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 border-t border-border-light dark:border-border-dark flex items-center justify-between">
+<div class="text-xs text-text-sub-light dark:text-text-sub-dark">
+                             Showing <strong>1-4</strong> of <strong>24</strong> reports
+                         </div>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-xs border border-border-light dark:border-border-dark rounded-md text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50">Previous</button>
+<button class="px-3 py-1 text-xs border border-border-light dark:border-border-dark rounded-md text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700">Next</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+        // Check for Dark Mode Preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+             document.documentElement.classList.add('dark');
+        }
+        // Chart.js Configuration
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        // Gradient for the line chart
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(79, 70, 229, 0.2)'); // Primary color with opacity
+        gradient.addColorStop(1, 'rgba(79, 70, 229, 0)');
+        const mainChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Sessions',
+                    data: [12, 19, 15, 25, 22, 30, 28],
+                    borderColor: '#4F46E5', // Primary
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#4F46E5',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#1E293B',
+                        titleColor: '#F8FAFC',
+                        bodyColor: '#F8FAFC',
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' Sessions';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.1)',
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            color: '#94A3B8',
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            color: '#94A3B8',
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+</body></html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quantum Toolkit - Participants Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4F46E5", // Indigo-600
+                        "primary-light": "#E0E7FF",
+                        "background-light": "#F3F4F6", // Gray-100/50 mix basically
+                        "background-dark": "#0F172A", // Slate-900
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B", // Slate-800
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#334155",
+                        "text-main-light": "#111827",
+                        "text-main-dark": "#F8FAFC",
+                        "text-sub-light": "#6B7280",
+                        "text-sub-dark": "#94A3B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem", // 12px
+                        "xl": "1rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        /* Custom scrollbar for table container if needed */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d1d2e6;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a0a3c4;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden relative">
+<aside class="w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col h-full flex-shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark lg:border-none">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                <span class="material-icons-round text-xl">all_inclusive</span>
+            </div>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Quantum</span>
+        </div>
+    </div>
+    <div class="px-5 mt-4 mb-2">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-icons-round text-gray-400 text-sm">search</span>
+            </span>
+            <input class="w-full bg-gray-50 dark:bg-slate-700/50 border-none rounded-lg py-2 pl-9 pr-3 text-sm text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-primary placeholder-gray-400 dark:placeholder-slate-500" placeholder="Search data..." type="text"/>
+            <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <span class="text-gray-400 text-xs border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5">⌘K</span>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Clinical Workflow</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="dashboard.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="font-medium text-sm">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 bg-primary/10 text-primary rounded-DEFAULT group" href="participants.html">
+                        <span class="material-icons-round text-[20px] transition-colors">people</span>
+                        <span class="font-medium text-sm">Participants</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="reports.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">assignment</span>
+                        <span class="font-medium text-sm">Reports &amp; Docs</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ai.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">psychology</span>
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="ml-auto bg-indigo-100 dark:bg-indigo-900/40 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="toolkit.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">construction</span>
+                        <span class="font-medium text-sm">Toolkit</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Compliance</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">verified_user</span>
+                        <span class="font-medium text-sm">Audits</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ndisplans.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">history_edu</span>
+                        <span class="font-medium text-sm">NDIS Plans</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Settings</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="general.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">settings</span>
+                        <span class="font-medium text-sm">General</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">help_outline</span>
+                        <span class="font-medium text-sm">Help Center</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="p-4 border-t border-border-light dark:border-border-dark">
+        <a href="profile.html" class="flex items-center gap-3 w-full hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-colors">
+            <img alt="User avatar" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3PRJomuYWo10PIj-wZ4oATztLJHU09M0yzJNrEj9PExcDf5irhFSknCmiKVhIpHuE4326mJFaMwoiucPKgNbVWJYxfzdkmyA-t4lIl6dIWQMk6zReuWABMGjJb68EgIVNIwi_wIUQVkBLhK3I9Gt-mQSt3N1NR1couViFXGZXp6c9r1JSV1qz03QqNMe4LrKh9goVNRi7QBvro3HK6SDVnBkcQwmT3-bgiNqy6TS7PRK8rgX7QlIiZMYr0io3FhCbpUqj8sqRCIs"/>
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Sarah Chen</p>
+                <p class="text-xs text-text-sub-light dark:text-text-sub-dark">Senior OT</p>
+            </div>
+        </a>
+    </div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-light dark:bg-background-dark relative">
+<!-- Top Header -->
+<header class="bg-surface-light border-b border-gray-200 px-8 py-5 flex items-center justify-between z-10 shrink-0">
+<div class="flex flex-col gap-1">
+<h2 class="text-slate-900 text-2xl font-bold tracking-tight">Participants Management</h2>
+<p class="text-slate-500 text-sm">Manage your client roster and NDIS plans</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400">search</span>
+</div>
+<input class="block w-64 pl-10 pr-3 py-2 border-none rounded-lg bg-gray-100 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-shadow" placeholder="Search by name or NDIS #" type="text"/>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm active:scale-95 transform duration-100">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Add Participant</span>
+</button>
+<button class="p-2 rounded-full text-slate-500 hover:bg-gray-100 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border border-white"></span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-8">
+<div class="max-w-[1400px] mx-auto flex flex-col gap-8 pb-10">
+<!-- Metric Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-white p-5 rounded-xl border border-gray-200 shadow-soft flex flex-col justify-between h-[120px]">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 text-sm font-medium">Total Participants</p>
+<span class="bg-indigo-50 p-1.5 rounded-md text-primary material-symbols-outlined text-[20px]">group</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold text-slate-900">124</span>
+<span class="text-emerald-600 text-xs font-semibold bg-emerald-50 px-1.5 py-0.5 rounded flex items-center mb-1">
+<span class="material-symbols-outlined text-[14px] mr-0.5">trending_up</span> 4%
+                                </span>
+</div>
+</div>
+<div class="bg-white p-5 rounded-xl border border-gray-200 shadow-soft flex flex-col justify-between h-[120px]">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 text-sm font-medium">Active This Week</p>
+<span class="bg-emerald-50 p-1.5 rounded-md text-emerald-600 material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold text-slate-900">42</span>
+<span class="text-emerald-600 text-xs font-semibold bg-emerald-50 px-1.5 py-0.5 rounded flex items-center mb-1">
+<span class="material-symbols-outlined text-[14px] mr-0.5">trending_up</span> 2%
+                                </span>
+</div>
+</div>
+<div class="bg-white p-5 rounded-xl border border-gray-200 shadow-soft flex flex-col justify-between h-[120px]">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 text-sm font-medium">Upcoming Reviews</p>
+<span class="bg-amber-50 p-1.5 rounded-md text-amber-600 material-symbols-outlined text-[20px]">calendar_clock</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold text-slate-900">8</span>
+<span class="text-amber-600 text-xs font-semibold bg-amber-50 px-1.5 py-0.5 rounded flex items-center mb-1">
+                                    Warning
+                                </span>
+</div>
+</div>
+<div class="bg-white p-5 rounded-xl border border-gray-200 shadow-soft flex flex-col justify-between h-[120px]">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 text-sm font-medium">Avg Sessions/Month</p>
+<span class="bg-blue-50 p-1.5 rounded-md text-blue-600 material-symbols-outlined text-[20px]">bar_chart</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold text-slate-900">3.2</span>
+<span class="text-rose-600 text-xs font-semibold bg-rose-50 px-1.5 py-0.5 rounded flex items-center mb-1">
+<span class="material-symbols-outlined text-[14px] mr-0.5">trending_down</span> 1%
+                                </span>
+</div>
+</div>
+</div>
+<!-- Main Table Section -->
+<div class="bg-white border border-gray-200 rounded-xl shadow-soft overflow-hidden flex flex-col min-h-[500px]">
+<!-- Tabs -->
+<div class="border-b border-gray-200 px-6 pt-2">
+<nav aria-label="Tabs" class="flex gap-6">
+<button class="border-b-2 border-primary py-4 px-1 text-sm font-semibold text-primary">
+                                    All (124)
+                                </button>
+<button class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 hover:border-slate-300">
+                                    Active (112)
+                                </button>
+<button class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 hover:border-slate-300">
+                                    Inactive (12)
+                                </button>
+</nav>
+</div>
+<!-- Table -->
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-gray-50 border-b border-gray-100">
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[250px]">Participant</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">NDIS Number</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Primary Diagnosis</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Plan Status</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Next Session</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Last Activity</th>
+</tr>
+</thead>
+<tbody class="bg-white divide-y divide-gray-100">
+<!-- Row 1: Active Selection -->
+<tr class="hover:bg-gray-50 bg-indigo-50/50 cursor-pointer transition-colors group">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold text-sm bg-cover bg-center" data-alt="Portrait of Sarah Jenkins" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBoikqEh3TcLiAmQ7p4guZPk955QiAhytmZpbpTd56YdjQKMtWt_mGj6H8BmDzgoCFSBnZCV3gv7cZyDGxINo6beAdfXCpbOSn5BcmcHBHT33w5sfhzjTcYTTPT0XBANopoBoH6lE0aLPZ8Nwj_x4eaQZ9hXOu3UMBPK1Ax8YmRGm9g9pXHUiHx5nco5PjvlxrlwldMeic0VUd_Jd_A0p1MGVQHMuvpqyW_YZEGbq0LkGi0kjiX8fmjJHD3YnAgVsMgzIM_JyLHko4');"></div>
+<div>
+<div class="text-sm font-semibold text-slate-900 group-hover:text-primary transition-colors">Sarah Jenkins</div>
+<div class="text-xs text-slate-500">Age: 12</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-600">4302 2219</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Cerebral Palsy</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                Active
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Nov 14, 2:00 PM</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">2 days ago</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-gray-50 cursor-pointer transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm">MC</div>
+<div>
+<div class="text-sm font-semibold text-slate-900">Michael Chen</div>
+<div class="text-xs text-slate-500">Age: 8</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-600">8821 3302</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Autism Spectrum</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                                Pending Review
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Nov 15, 10:00 AM</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">5 hours ago</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-gray-50 cursor-pointer transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-cover bg-center" data-alt="Portrait of Emma Wilson" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBnt4JmlUgAhRZ_4tAHv-5147Vvj0itrN8iqhc1nZhmlvMknfnUjS49sDLgBHuZjM-CzEy_mQD6E45FJadHxU3kyzH5IOKbiqBa3s5aV9sPHZ6iSjwWyFbkvCnfpi8ieNaRWUH_gKssekwX81Cmw66tknnKpRMwIKCe2b5yvraDsRiDJkRDbKOA5TjLoDaVwtqTBxYPiiFi0LZOaodaSi5OGiMpQaXjyB00x_NtC6stQ17YXbVZ1OUkZRFcW6H-DYDNmyYW1kBH-Gg');"></div>
+<div>
+<div class="text-sm font-semibold text-slate-900">Emma Wilson</div>
+<div class="text-xs text-slate-500">Age: 24</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-600">1029 3847</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Spinal Injury</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                Active
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Nov 18, 9:00 AM</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">1 day ago</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-gray-50 cursor-pointer transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">LB</div>
+<div>
+<div class="text-sm font-semibold text-slate-900">Liam Brown</div>
+<div class="text-xs text-slate-500">Age: 5</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-600">5564 2291</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Dev. Delay</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-slate-600">
+                                                Inactive
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">-</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">2 weeks ago</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-gray-50 cursor-pointer transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-cover bg-center" data-alt="Portrait of Olivia Davis" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBsoFGE4VZNdiNhN0c_r6GtkA72sXd_2hzjVw7MXZfyj1SqmJfsuIn5s3kOb6Ptva0Pb6ugW4nE6Ie5SEceH1PSYo4qyZvAOWmZo_CcP2k9wOtEoDR9gj2EmEwU5xOVJ9-kXjQfHuExZH62N6NiuE84qjX-fKhi-qYJ-MiVV0ICq1x9Qh22viHRmbiNIaVILvOtDlFS_NlQwiyTHlBnW-hXR1M8icgHT4gU0Gkagej_rIk47JN0qFFp989kp46_7OU0Wc9T7k6BB54');"></div>
+<div>
+<div class="text-sm font-semibold text-slate-900">Olivia Davis</div>
+<div class="text-xs text-slate-500">Age: 19</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-600">9928 1102</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Stroke Recovery</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                Active
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Nov 16, 11:30 AM</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">3 days ago</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="bg-white px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+<span class="text-sm text-slate-500">Showing <span class="font-semibold text-slate-900">1-5</span> of <span class="font-semibold text-slate-900">124</span> participants</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-slate-600 hover:bg-gray-50 disabled:opacity-50" disabled="">Previous</button>
+<button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-slate-600 hover:bg-gray-50">Next</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Slide-over Panel (Simulated overlay) -->
+<div class="absolute inset-y-0 right-0 w-[480px] bg-white shadow-2xl border-l border-gray-200 z-50 transform transition-transform duration-300 ease-in-out translate-x-0 flex flex-col h-full">
+<!-- Header -->
+<div class="p-6 border-b border-gray-100 flex flex-col gap-4 bg-gray-50/50">
+<div class="flex justify-between items-start">
+<div class="flex gap-4">
+<div class="h-16 w-16 rounded-xl bg-cover bg-center shadow-md" data-alt="Large Portrait of Sarah Jenkins" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD1n5_5HRHsdeGBt85zQRsG3ibdA1VhT-xDdJhFmr0xmFvRiWbf_k13vH9ZB5M2NSM_TFyh0owKuVhcp7yAnpzFLngJIWWHg44I1V7g0Py2CFmfSXAwgAlGwIOF3Oulv5b50tRHrQ0cx7hbMhUuHlWJ6Bma9j2di4l-XNyX70Ap9L8NUnXe-ru5RFc91aDDWtJ-oe6bUd4MuaZ7DGSp8Jq_damraT6MfcYCf_NJV6YaGjfH6lrY6s-650Ca6ePYMBETfERf_Auz560');"></div>
+<div class="flex flex-col justify-center">
+<h3 class="text-xl font-bold text-slate-900">Sarah Jenkins</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 bg-gray-200 rounded text-xs font-mono font-medium text-slate-600">4302 2219</span>
+<span class="h-1 w-1 rounded-full bg-slate-400"></span>
+<span class="text-sm text-slate-500">Female, 12</span>
+</div>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex gap-2 mt-2">
+<button class="flex-1 bg-white border border-gray-300 text-slate-700 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 shadow-sm">Message</button>
+<button class="flex-1 bg-white border border-gray-300 text-slate-700 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 shadow-sm">Edit Profile</button>
+</div>
+</div>
+<!-- Tabs -->
+<div class="border-b border-gray-200 px-6">
+<div class="flex gap-6">
+<button class="border-b-2 border-primary py-3 text-sm font-semibold text-primary">Overview</button>
+<button class="border-b-2 border-transparent py-3 text-sm font-medium text-slate-500 hover:text-slate-700">Sessions</button>
+<button class="border-b-2 border-transparent py-3 text-sm font-medium text-slate-500 hover:text-slate-700">Goals</button>
+<button class="border-b-2 border-transparent py-3 text-sm font-medium text-slate-500 hover:text-slate-700">Documents</button>
+</div>
+</div>
+<!-- Panel Content -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<!-- Widget: NDIS Plan Details -->
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide">NDIS Plan Details</h4>
+<span class="text-xs text-primary font-medium cursor-pointer hover:underline">View Full Plan</span>
+</div>
+<div class="bg-indigo-50/50 rounded-lg p-4 border border-indigo-100">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-medium text-slate-700">Core Supports</span>
+<span class="text-sm font-bold text-slate-900">$12,450 / $28,000</span>
+</div>
+<div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+<div class="bg-primary h-2.5 rounded-full" style="width: 45%"></div>
+</div>
+<div class="flex justify-between text-xs text-slate-500">
+<span>45% Used</span>
+<span>Ends Dec 31, 2024</span>
+</div>
+</div>
+<div class="bg-white rounded-lg p-4 border border-gray-200">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-medium text-slate-700">Capacity Building</span>
+<span class="text-sm font-bold text-slate-900">$4,200 / $12,000</span>
+</div>
+<div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+<div class="bg-emerald-500 h-2.5 rounded-full" style="width: 35%"></div>
+</div>
+<div class="flex justify-between text-xs text-slate-500">
+<span>35% Used</span>
+<span>Ends Dec 31, 2024</span>
+</div>
+</div>
+</div>
+<!-- Widget: Active Goals -->
+<div class="space-y-4 pt-4 border-t border-gray-100">
+<div class="flex items-center justify-between">
+<h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Active Goals</h4>
+<button class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-slate-600 transition-colors">+ Add Goal</button>
+</div>
+<div class="flex items-start gap-4 p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all cursor-pointer">
+<div class="relative size-10 flex-shrink-0">
+<svg class="size-full" viewbox="0 0 36 36">
+<path class="text-gray-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="40, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-700">40%</div>
+</div>
+<div>
+<h5 class="text-sm font-semibold text-slate-800">Fine Motor Skills</h5>
+<p class="text-xs text-slate-500 mt-1 leading-relaxed">Improve handwriting grip strength and button fastening ability.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all cursor-pointer">
+<div class="relative size-10 flex-shrink-0">
+<svg class="size-full" viewbox="0 0 36 36">
+<path class="text-gray-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-amber-500" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="75, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-700">75%</div>
+</div>
+<div>
+<h5 class="text-sm font-semibold text-slate-800">Sensory Regulation</h5>
+<p class="text-xs text-slate-500 mt-1 leading-relaxed">Recognize sensory overload triggers in classroom settings.</p>
+</div>
+</div>
+</div>
+<!-- Widget: Next Appointment -->
+<div class="bg-indigo-600 rounded-xl p-4 text-white shadow-md mt-4">
+<div class="flex items-center gap-3 mb-3">
+<span class="p-2 bg-white/20 rounded-lg material-symbols-outlined text-[20px]">event</span>
+<div>
+<p class="text-xs opacity-80 font-medium uppercase tracking-wider">Next Session</p>
+<p class="text-sm font-bold">Thursday, Nov 14</p>
+</div>
+</div>
+<div class="flex items-center justify-between text-xs bg-black/20 rounded-lg p-2.5">
+<span>2:00 PM - 3:00 PM</span>
+<span class="font-medium text-indigo-100">School Visit</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

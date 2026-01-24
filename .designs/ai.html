@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quantum Toolkit - AI Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4F46E5", // Indigo-600
+                        "primary-light": "#E0E7FF",
+                        "background-light": "#F3F4F6", // Gray-100/50 mix basically
+                        "background-dark": "#0F172A", // Slate-900
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B", // Slate-800
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#334155",
+                        "text-main-light": "#111827",
+                        "text-main-dark": "#F8FAFC",
+                        "text-sub-light": "#6B7280",
+                        "text-sub-dark": "#94A3B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem", // 12px
+                        "xl": "1rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col h-full flex-shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark lg:border-none">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                <span class="material-icons-round text-xl">all_inclusive</span>
+            </div>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Quantum</span>
+        </div>
+    </div>
+    <div class="px-5 mt-4 mb-2">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-icons-round text-gray-400 text-sm">search</span>
+            </span>
+            <input class="w-full bg-gray-50 dark:bg-slate-700/50 border-none rounded-lg py-2 pl-9 pr-3 text-sm text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-primary placeholder-gray-400 dark:placeholder-slate-500" placeholder="Search data..." type="text"/>
+            <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <span class="text-gray-400 text-xs border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5">⌘K</span>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Clinical Workflow</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="dashboard.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="font-medium text-sm">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="participants.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">people</span>
+                        <span class="font-medium text-sm">Participants</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="reports.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">assignment</span>
+                        <span class="font-medium text-sm">Reports &amp; Docs</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 bg-primary/10 text-primary rounded-DEFAULT group" href="ai.html">
+                        <span class="material-icons-round text-[20px] transition-colors">psychology</span>
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="ml-auto bg-indigo-100 dark:bg-indigo-900/40 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="toolkit.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">construction</span>
+                        <span class="font-medium text-sm">Toolkit</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Compliance</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">verified_user</span>
+                        <span class="font-medium text-sm">Audits</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ndisplans.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">history_edu</span>
+                        <span class="font-medium text-sm">NDIS Plans</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Settings</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="general.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">settings</span>
+                        <span class="font-medium text-sm">General</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">help_outline</span>
+                        <span class="font-medium text-sm">Help Center</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="p-4 border-t border-border-light dark:border-border-dark">
+        <a href="profile.html" class="flex items-center gap-3 w-full hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-colors">
+            <img alt="User avatar" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3PRJomuYWo10PIj-wZ4oATztLJHU09M0yzJNrEj9PExcDf5irhFSknCmiKVhIpHuE4326mJFaMwoiucPKgNbVWJYxfzdkmyA-t4lIl6dIWQMk6zReuWABMGjJb68EgIVNIwi_wIUQVkBLhK3I9Gt-mQSt3N1NR1couViFXGZXp6c9r1JSV1qz03QqNMe4LrKh9goVNRi7QBvro3HK6SDVnBkcQwmT3-bgiNqy6TS7PRK8rgX7QlIiZMYr0io3FhCbpUqj8sqRCIs"/>
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Sarah Chen</p>
+                <p class="text-xs text-text-sub-light dark:text-text-sub-dark">Senior OT</p>
+            </div>
+        </a>
+    </div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-light dark:bg-background-dark">
+<header class="h-16 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 lg:px-8">
+<h1 class="text-xl font-bold text-gray-900 dark:text-white">AI Assistant</h1>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+<span class="material-icons-round text-[22px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+</button>
+<button class="p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors lg:hidden">
+<span class="material-icons-round text-[22px]">search</span>
+</button>
+<div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1 hidden lg:block"></div>
+<button class="hidden lg:flex items-center gap-2 text-sm text-text-sub-light dark:text-text-sub-dark hover:text-primary font-medium">
+<span class="material-icons-round text-sm">calendar_today</span>
+<span>Oct 24, 2023</span>
+<span class="material-icons-round text-sm">expand_more</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Main Content Area (Chat) -->
+<div class="flex-1 flex flex-col relative min-w-0 bg-[#f9f8fb] dark:bg-[#0f0e1b]">
+<!-- Chat Header -->
+<div class="flex-none px-8 py-5 border-b border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-black/20 backdrop-blur-sm sticky top-0 z-10">
+<div class="max-w-4xl mx-auto w-full">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<h1 class="text-[#0f0e1b] dark:text-white tracking-tight text-2xl font-bold leading-tight">Quantum AI Assistant</h1>
+<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium border border-green-200">Secure Mode</span>
+</div>
+<p class="text-[#545095] dark:text-gray-400 text-sm font-normal leading-normal">Drafting clinical notes and summaries powered by secure LLMs.</p>
+</div>
+</div>
+</div>
+<!-- Chat Messages Area -->
+<div class="flex-1 overflow-y-auto p-4 sm:p-8 scroll-smooth" id="chat-container">
+<div class="max-w-4xl mx-auto w-full flex flex-col gap-6 pb-4">
+<!-- Date Separator -->
+<div class="flex justify-center">
+<span class="text-xs font-medium text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">Today, 9:41 AM</span>
+</div>
+<!-- AI Welcome Message -->
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 shrink-0 border border-gray-200 dark:border-gray-700 shadow-sm" data-alt="Abstract geometric purple pattern representing AI" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBPz4xoueRPw4KDwcWqD-YePZ6GbdWAvDKOP6vgMCd8N0_v6ZR0CGG9JrWO8Xn4iVbdpU9o7a34UkVKMNhkeMzmx2S-SomNuS-Yj52kgIbPwrXNa1PyJ-vUPVz1fE0cS6MsrmZ7mYpNrJfQefbDQ856bG38Fu3BnQtGz-gPMBfoKdgn-91sNFXvIPRgl-shUs11XvFvbOw3n-ldJpEhb4-ZUmQTTawiwG7vxkOxGk2hAb0e8UtF5OoTdBfcHte8KVzklwrCBYu1T30");'></div>
+<div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[75%]">
+<div class="flex items-baseline gap-2">
+<span class="text-[#0f0e1b] dark:text-white text-sm font-bold">Quantum AI</span>
+<span class="text-gray-400 text-xs">9:41 AM</span>
+</div>
+<div class="bg-white dark:bg-[#1a192e] rounded-2xl rounded-tl-none p-4 shadow-sm border border-gray-100 dark:border-gray-800 text-gray-800 dark:text-gray-200 text-base leading-relaxed">
+<p>Hello Dr. Jensen. I'm ready to assist with your documentation today. I can help summarize sessions, draft reports, or analyze assessment data. </p>
+<p class="mt-2 text-sm text-gray-500">Note: All data processed in this session is encrypted and compliant with NDIS privacy standards.</p>
+</div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex items-end justify-end gap-3">
+<div class="flex flex-col gap-1 items-end max-w-[85%] sm:max-w-[75%]">
+<div class="bg-primary text-white rounded-2xl rounded-br-none px-5 py-3 shadow-md text-base leading-relaxed">
+<p>Draft a Functional Capacity Assessment summary for John Doe based on yesterday's notes. Focus on mobility and self-care goals.</p>
+</div>
+<span class="text-gray-400 text-xs pr-1">9:45 AM</span>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 shrink-0 border-2 border-white shadow-sm" data-alt="Profile picture of Sarah Jensen" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD8DKPqfTBVTlzmpA3lBWL5k3Qb4KO6rgu9Dhaav5NcNU6RLQQpLvxIbPRo03apHcFJ5vRSmJ1pEUn14-OhrPKb1F_kKLYyBGewzoHeOcA0t417lzKEDTtsYnK5cEm1RM5DsN-FrVeNDUZwjdLfY4rYsVxWFolPlcIMK8cXm2KAJmyPwy_OFJ1FPfb2N0vH32sPcarO5RA-yprkzqIwZ5LTW1Ui4HhykY1C75lFYqsAsxh_KPe_b1oJnCFuIu4hQBWW9MBcS576ZzQ");'></div>
+</div>
+<!-- AI Response -->
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 shrink-0 border border-gray-200 dark:border-gray-700 shadow-sm" data-alt="Abstract geometric purple pattern representing AI" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnynFrcV4dLlfk4dGtJa9H3a8xIzALc__aiB9oG8bF4gAZ6678oTdNdJa0n_MQZoiZDKhR1NoT6HSjZNqkyXfZKMLIupNO2Asg-CCg5QSY-qc3egdKg3rXMFk7rntYCGRUfyX3GLH2fcATfjPAPoB87Z2Ejh_XVQJ1CAudyVhgUcMaVsuwwz-aVZm268YthE-I-KuXTKgmruIUjJp6XcegALEJHzpq6C4OneMKKkfDUzrvpZcIRAcSuZo6iPnX_QYqZd4-9Zz7oWs");'></div>
+<div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[75%]">
+<div class="flex items-baseline gap-2">
+<span class="text-[#0f0e1b] dark:text-white text-sm font-bold">Quantum AI</span>
+<span class="text-gray-400 text-xs">9:45 AM</span>
+</div>
+<div class="bg-white dark:bg-[#1a192e] rounded-2xl rounded-tl-none p-5 shadow-sm border border-gray-100 dark:border-gray-800 text-gray-800 dark:text-gray-200 text-base leading-relaxed">
+<p class="mb-3">Here is a draft summary based on the session dated Oct 24:</p>
+<div class="space-y-3 mb-4">
+<div>
+<strong class="text-primary font-semibold block mb-1">Mobility</strong>
+<p class="text-sm">Participant demonstrated improved range of motion in upper extremities but continues to fatigue quickly after 10 minutes of moderate activity. Used a walking stick for support during transfer assessments.</p>
+</div>
+<div>
+<strong class="text-primary font-semibold block mb-1">Self-Care</strong>
+<p class="text-sm">Needs assistance with grooming tasks, specifically fine motor manipulation for buttoning shirts. Independent with feeding but requires adaptive cutlery.</p>
+</div>
+</div>
+<div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+<span class="material-symbols-outlined text-primary text-lg">verified</span>
+<span class="text-xs font-medium text-primary uppercase tracking-wide">AI Confidence: 94%</span>
+<span class="text-xs text-gray-400 ml-auto">Sources: Note #4821, Note #4825</span>
+</div>
+</div>
+<!-- Action Chips -->
+<div class="flex gap-2 mt-1 ml-1 overflow-x-auto pb-2">
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1a192e] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-base">content_copy</span> Copy
+                                </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1a192e] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-base">refresh</span> Regenerate
+                                </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1a192e] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-base">edit_note</span> Insert to Report
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area (Sticky Bottom) -->
+<div class="flex-none p-4 sm:p-8 pt-2">
+<div class="max-w-4xl mx-auto w-full">
+<div class="relative flex flex-col gap-2 bg-white dark:bg-[#1a192e] rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-2 transition-shadow focus-within:shadow-xl focus-within:border-primary/50">
+<textarea class="w-full bg-transparent border-none text-base text-[#0f0e1b] dark:text-white placeholder-gray-400 focus:ring-0 resize-none py-3 px-4 min-h-[60px]" placeholder="Type a message or command (e.g. 'Summarize the last session')..." rows="2"></textarea>
+<div class="flex items-center justify-between px-2 pb-1">
+<div class="flex items-center gap-1">
+<button class="p-2 text-gray-400 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all" title="Attach file">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<button class="p-2 text-gray-400 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all" title="Voice input">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<button class="p-2 text-gray-400 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all" title="Templates">
+<span class="material-symbols-outlined">dataset</span>
+</button>
+</div>
+<div class="flex items-center gap-3">
+<span class="hidden sm:inline text-xs text-gray-400">Do not input PII unless in Local Mode</span>
+<button class="flex items-center justify-center size-10 bg-primary hover:bg-primary-dark text-white rounded-xl shadow-md transition-colors">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-3">Quantum AI can make mistakes. Please verify important clinical information.</p>
+</div>
+</div>
+</div>
+<!-- Right Sidebar (Context & Tools) -->
+<aside class="hidden lg:flex w-80 flex-col bg-white dark:bg-surface-dark border-l border-[#e8e8f3] dark:border-gray-800 flex-none z-10 overflow-y-auto">
+<div class="p-5 flex flex-col gap-6">
+<!-- AI Status Card -->
+<div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-100 dark:border-gray-800">
+<h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">AI Models Status</h3>
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-green-500 animate-pulse"></div>
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Gemini Pro</span>
+</div>
+<span class="text-xs text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">Online</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Ollama (Local)</span>
+</div>
+<span class="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">Idle</span>
+</div>
+</div>
+</div>
+<!-- Suggested Prompts -->
+<div>
+<h3 class="text-sm font-bold text-[#0f0e1b] dark:text-white mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">lightbulb</span> Suggested Prompts
+                    </h3>
+<div class="flex flex-col gap-2">
+<button class="text-left p-3 rounded-xl border border-[#e8e8f3] dark:border-gray-700 hover:border-primary hover:shadow-sm bg-white dark:bg-[#1a192e] transition-all group">
+<p class="text-sm font-medium text-gray-800 dark:text-gray-200 group-hover:text-primary">Generate FCA for [Participant]</p>
+<p class="text-xs text-gray-500 mt-1">Creates a full structure based on recent notes.</p>
+</button>
+<button class="text-left p-3 rounded-xl border border-[#e8e8f3] dark:border-gray-700 hover:border-primary hover:shadow-sm bg-white dark:bg-[#1a192e] transition-all group">
+<p class="text-sm font-medium text-gray-800 dark:text-gray-200 group-hover:text-primary">Analyze Sensory Profile</p>
+<p class="text-xs text-gray-500 mt-1">Extracts sensory patterns from observations.</p>
+</button>
+<button class="text-left p-3 rounded-xl border border-[#e8e8f3] dark:border-gray-700 hover:border-primary hover:shadow-sm bg-white dark:bg-[#1a192e] transition-all group">
+<p class="text-sm font-medium text-gray-800 dark:text-gray-200 group-hover:text-primary">Draft NDIS Progress Report</p>
+<p class="text-xs text-gray-500 mt-1">Summarizes goal achievement over 6 months.</p>
+</button>
+</div>
+</div>
+<!-- Recent Generations -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-sm font-bold text-[#0f0e1b] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">history</span> Recent
+                        </h3>
+<a class="text-xs text-primary font-medium hover:underline" href="#">View All</a>
+</div>
+<div class="flex flex-col gap-0 border border-[#e8e8f3] dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-[#1a192e]">
+<a class="p-3 border-b border-[#e8e8f3] dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" href="#">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-200">Session Summary: J. Doe</span>
+<span class="text-[10px] text-gray-400">2h ago</span>
+</div>
+</a>
+<a class="p-3 border-b border-[#e8e8f3] dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" href="#">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-200">Home Mod Request</span>
+<span class="text-[10px] text-gray-400">Yesterday</span>
+</div>
+</a>
+<a class="p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" href="#">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-200">Email Draft: Support Coordinator</span>
+<span class="text-[10px] text-gray-400">Oct 23</span>
+</div>
+</a>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</body></html>

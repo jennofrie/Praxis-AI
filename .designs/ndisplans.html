@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quantum Toolkit - NDIS Plan Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4F46E5", // Indigo-600
+                        "primary-light": "#E0E7FF",
+                        "background-light": "#F3F4F6", // Gray-100/50 mix basically
+                        "background-dark": "#0F172A", // Slate-900
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B", // Slate-800
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#334155",
+                        "text-main-light": "#111827",
+                        "text-main-dark": "#F8FAFC",
+                        "text-sub-light": "#6B7280",
+                        "text-sub-dark": "#94A3B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem", // 12px
+                        "xl": "1rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col h-full flex-shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark lg:border-none">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                <span class="material-icons-round text-xl">all_inclusive</span>
+            </div>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Quantum</span>
+        </div>
+    </div>
+    <div class="px-5 mt-4 mb-2">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-icons-round text-gray-400 text-sm">search</span>
+            </span>
+            <input class="w-full bg-gray-50 dark:bg-slate-700/50 border-none rounded-lg py-2 pl-9 pr-3 text-sm text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-primary placeholder-gray-400 dark:placeholder-slate-500" placeholder="Search data..." type="text"/>
+            <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <span class="text-gray-400 text-xs border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5">⌘K</span>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Clinical Workflow</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="dashboard.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="font-medium text-sm">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="participants.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">people</span>
+                        <span class="font-medium text-sm">Participants</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="reports.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">assignment</span>
+                        <span class="font-medium text-sm">Reports &amp; Docs</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ai.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">psychology</span>
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="ml-auto bg-indigo-100 dark:bg-indigo-900/40 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="toolkit.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">construction</span>
+                        <span class="font-medium text-sm">Toolkit</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Compliance</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">verified_user</span>
+                        <span class="font-medium text-sm">Audits</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 bg-primary/10 text-primary rounded-DEFAULT group" href="ndisplans.html">
+                        <span class="material-icons-round text-[20px] transition-colors">history_edu</span>
+                        <span class="font-medium text-sm">NDIS Plans</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Settings</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="general.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">settings</span>
+                        <span class="font-medium text-sm">General</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">help_outline</span>
+                        <span class="font-medium text-sm">Help Center</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="p-4 border-t border-border-light dark:border-border-dark">
+        <a href="profile.html" class="flex items-center gap-3 w-full hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-colors">
+            <img alt="User avatar" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3PRJomuYWo10PIj-wZ4oATztLJHU09M0yzJNrEj9PExcDf5irhFSknCmiKVhIpHuE4326mJFaMwoiucPKgNbVWJYxfzdkmyA-t4lIl6dIWQMk6zReuWABMGjJb68EgIVNIwi_wIUQVkBLhK3I9Gt-mQSt3N1NR1couViFXGZXp6c9r1JSV1qz03QqNMe4LrKh9goVNRi7QBvro3HK6SDVnBkcQwmT3-bgiNqy6TS7PRK8rgX7QlIiZMYr0io3FhCbpUqj8sqRCIs"/>
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Sarah Chen</p>
+                <p class="text-xs text-text-sub-light dark:text-text-sub-dark">Senior OT</p>
+            </div>
+        </a>
+    </div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark relative">
+<!-- TopNavBar -->
+<header class="h-16 flex-shrink-0 flex items-center justify-between px-8 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark z-10">
+<div class="flex items-center gap-3">
+<nav aria-label="Breadcrumb" class="flex">
+<ol class="inline-flex items-center space-x-1 md:space-x-3">
+<li class="inline-flex items-center">
+<a class="inline-flex items-center text-sm font-medium text-text-sub-light hover:text-primary dark:text-text-sub-dark" href="#">
+                                Compliance
+                                </a>
+</li>
+<li>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-text-sub-light text-sm">chevron_right</span>
+<span class="ml-1 text-sm font-medium text-text-main-light md:ml-2 dark:text-white">NDIS Plans</span>
+</div>
+</li>
+</ol>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative p-2 text-text-sub-light hover:text-text-main-light dark:hover:text-white">
+<span class="material-icons-round">notifications</span>
+<span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-surface-dark"></span>
+</button>
+<div class="flex items-center gap-3 pl-6 border-l border-border-light dark:border-border-dark">
+<div class="text-right hidden md:block">
+<p class="text-sm font-semibold text-text-main-light dark:text-white">Dr. Sarah Mitchell</p>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark">Senior OT</p>
+</div>
+<div class="h-10 w-10 rounded-full bg-cover bg-center ring-2 ring-white dark:ring-border-dark shadow-sm" data-alt="Profile picture of a female doctor" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC7iKICeN2AKYvnoaED4B0z4DUSMTbYtQu_LhmIRqHW09avskkH1I73hIWTSeKp8Ao-j4CqV0z-NCdGn__w5RRETt_IrLiAo3XbuIjaRHoJLjvUFkYU1y2sI0UhqaMX1uglGD51Yvyka7Z-hbMlgsBnBMgYCczsHGbZu33lJiU4OTwuSWQF_GxgtqBDs1o0D_Ik9sJZTARmmU4IeW2G4u-ovp9UTHTaKzaUx94i_4ywOj6IPJyZQWZ5oWfaNfop_JfJKahx9Rx1F1w');"></div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8">
+<div class="max-w-[1600px] mx-auto h-full flex flex-col gap-8">
+<!-- Page Header & Metrics -->
+<div class="flex flex-col gap-6">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h2 class="text-3xl font-bold text-text-main-light dark:text-white tracking-tight">NDIS Plans</h2>
+<p class="text-text-sub-light dark:text-text-sub-dark mt-1">Manage participant funding and track budget utilization.</p>
+</div>
+<div class="flex items-center gap-3">
+<!-- Search Bar -->
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-icons-round text-text-sub-light text-[20px]">search</span>
+</div>
+<input class="block w-full md:w-64 pl-10 pr-3 py-2.5 border-none rounded-lg bg-white dark:bg-surface-dark text-text-main-light dark:text-white placeholder-text-sub-light focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-sm text-sm" placeholder="Search by name or NDIS #" type="text"/>
+</div>
+<button class="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all text-sm font-semibold">
+<span class="material-icons-round text-[20px]">add</span>
+                                    Link New Plan
+                                </button>
+</div>
+</div>
+<!-- Metric Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1 -->
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-soft flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-icons-round text-6xl text-primary">folder_open</span>
+</div>
+<p class="text-text-sub-light dark:text-text-sub-dark text-sm font-medium">Active Plans</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-bold text-text-main-light dark:text-white">42</span>
+<span class="text-emerald-500 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded flex items-center mb-1">
+<span class="material-icons-round text-[14px] mr-0.5">trending_up</span> +2
+                                    </span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-soft flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-icons-round text-6xl text-amber-500">warning</span>
+</div>
+<p class="text-text-sub-light dark:text-text-sub-dark text-sm font-medium">Expiring (30 days)</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-bold text-amber-600 dark:text-amber-500">3</span>
+<span class="text-text-sub-light text-xs mb-1">require review</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-soft flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-icons-round text-6xl text-primary">payments</span>
+</div>
+<p class="text-text-sub-light dark:text-text-sub-dark text-sm font-medium">Total Funding Managed</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-bold text-text-main-light dark:text-white">$4.2M</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-soft flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-icons-round text-6xl text-blue-500">analytics</span>
+</div>
+<p class="text-text-sub-light dark:text-text-sub-dark text-sm font-medium">Avg. Utilization</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-bold text-text-main-light dark:text-white">68%</span>
+<span class="text-emerald-500 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded flex items-center mb-1">
+                                        On Track
+                                    </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Split Layout: Main Grid + Sidebar -->
+<div class="flex flex-col lg:flex-row gap-6 h-full pb-8">
+<!-- Left: Plan Cards Grid -->
+<div class="flex-1">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-text-main-light dark:text-white">Active Participants</h3>
+<div class="flex items-center gap-2">
+<button class="p-1.5 rounded hover:bg-background-light dark:hover:bg-slate-700 text-text-sub-light">
+<span class="material-icons-round">filter_list</span>
+</button>
+<button class="p-1.5 rounded hover:bg-background-light dark:hover:bg-slate-700 text-text-sub-light">
+<span class="material-icons-round">sort</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+<!-- Plan Card 1 -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm hover:shadow-medium transition-shadow p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-full bg-cover bg-center" data-alt="Portrait of Sarah Jenkins" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDX7EZWIFfKRAh76i4Vc-9zoCF-oSMP3TzC6hugBt-Epei-ltPawG4JSD8E48fZAuE4sJSMP86EB_1p2KuPuhznp-LvSP87D2UZewT4yl2-mfwHKdkNDjUn5fsr893pBvCAiqbGGf9WXIyrwcy2XSlfcUJBNeTOpbPnJ7uY9jS7XZSpeQRfS-A76f5-ePVx46dWOAmUB9tvBQ6zb87FdZfU_GMFYea8PhDPvE928hkcJ6UqSr6nar6nHF3rJUH4QhJ0QvGBmCTBwzc');"></div>
+<div>
+<h4 class="font-bold text-text-main-light dark:text-white leading-tight">Sarah Jenkins</h4>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark font-mono mt-0.5">NDIS #492819221</p>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            14 Days Left
+                                        </span>
+</div>
+<div class="text-xs text-text-sub-light dark:text-text-sub-dark flex justify-between border-b border-border-light dark:border-border-dark pb-3">
+<span>Plan Dates:</span>
+<span class="font-medium text-text-main-light dark:text-white">12 Jan 2023 - 12 Jan 2024</span>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Core Funding -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Core</span>
+<span class="text-text-sub-light">$12k / $15k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 80%"></div>
+</div>
+</div>
+<!-- Capacity Building -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Capacity</span>
+<span class="text-text-sub-light">$8k / $10k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-blue-400 rounded-full" style="width: 80%"></div>
+</div>
+</div>
+<!-- Capital -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Capital</span>
+<span class="text-text-sub-light">$2k / $15k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-indigo-300 rounded-full" style="width: 13%"></div>
+</div>
+</div>
+</div>
+<div class="mt-2 pt-3 border-t border-border-light dark:border-border-dark flex justify-end">
+<button class="text-primary hover:text-primary-light text-sm font-semibold flex items-center gap-1">
+                                            View Details <span class="material-icons-round text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Plan Card 2 -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm hover:shadow-medium transition-shadow p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-full bg-cover bg-center" data-alt="Portrait of Michael Chen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfdFClHynw_clm8iV0D8zqrbazAhXJ2EZmGYaIARyPL_CpWkQWYfVtHgq0u6TDL71RUhY0cbzZ3Rgj0DvrWkqwf6D9ll-zziYpvXP5QxR5mFd_nGgKZX8jhDa4jZiBxDDjS2m6QcDYyy9OluF_QvXoUFwODmyUx3nTl1xZT3mOJVAwA0pCRs3tKMeSA9me56z7YD7WTT_sq9--k8bPAhrNrKj-vEb70jNX_xdbTZyFjIqsKtuCd2Xw550UWz9ao1Aw3mb-4WT_Zd4');"></div>
+<div>
+<h4 class="font-bold text-text-main-light dark:text-white leading-tight">Michael Chen</h4>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark font-mono mt-0.5">NDIS #829103942</p>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            Active
+                                        </span>
+</div>
+<div class="text-xs text-text-sub-light dark:text-text-sub-dark flex justify-between border-b border-border-light dark:border-border-dark pb-3">
+<span>Plan Dates:</span>
+<span class="font-medium text-text-main-light dark:text-white">01 Mar 2023 - 01 Mar 2025</span>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Core Funding -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Core</span>
+<span class="text-text-sub-light">$5k / $20k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 25%"></div>
+</div>
+</div>
+<!-- Capacity Building -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Capacity</span>
+<span class="text-text-sub-light">$12k / $30k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-blue-400 rounded-full" style="width: 40%"></div>
+</div>
+</div>
+<!-- Capital -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Capital</span>
+<span class="text-text-sub-light">$0 / $5k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-indigo-300 rounded-full" style="width: 0%"></div>
+</div>
+</div>
+</div>
+<div class="mt-2 pt-3 border-t border-border-light dark:border-border-dark flex justify-end">
+<button class="text-primary hover:text-primary-light text-sm font-semibold flex items-center gap-1">
+                                            View Details <span class="material-icons-round text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Plan Card 3 -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm hover:shadow-medium transition-shadow p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-full bg-cover bg-center" data-alt="Portrait of David Rossi" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCNXa9dtS6vtAF5pKaveZD9Yi9SxZaraCsEtztzhva9DRjRTt3HinxHOzAjxS7uoLIVU2odYEd3sF35_IVeFfgwPHTu9vz7S6t6YL440IBYlZTncyC2ZUTx5uXYFKPNzAwNSCzCxbrC_SLmXHDQTZEzwveTKio8xsWf-QA5vlZNLIMefjWl-IkavDJCvwAB2RcEjHn7Xs4drpbGbZ1XYAPln9P4wmf-qHM69CG_4R9GTZ14N0uJxcIu1OWiLB9nGaqxr0jC_zcwNm4');"></div>
+<div>
+<h4 class="font-bold text-text-main-light dark:text-white leading-tight">David Rossi</h4>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark font-mono mt-0.5">NDIS #112938475</p>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 rounded-full bg-red-50 dark:bg-red-900/20 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                            Depleted
+                                        </span>
+</div>
+<div class="text-xs text-text-sub-light dark:text-text-sub-dark flex justify-between border-b border-border-light dark:border-border-dark pb-3">
+<span>Plan Dates:</span>
+<span class="font-medium text-text-main-light dark:text-white">15 Jun 2023 - 15 Jun 2024</span>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Core Funding -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Core</span>
+<span class="text-red-500 font-semibold">$9.9k / $10k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-red-500 rounded-full" style="width: 99%"></div>
+</div>
+</div>
+<!-- Capacity Building -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Capacity</span>
+<span class="text-text-sub-light">$15k / $25k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-blue-400 rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<!-- Capital -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Capital</span>
+<span class="text-text-sub-light">$5k / $10k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-indigo-300 rounded-full" style="width: 50%"></div>
+</div>
+</div>
+</div>
+<div class="mt-2 pt-3 border-t border-border-light dark:border-border-dark flex justify-end">
+<button class="text-primary hover:text-primary-light text-sm font-semibold flex items-center gap-1">
+                                            View Details <span class="material-icons-round text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Plan Card 4 -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm hover:shadow-medium transition-shadow p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-full bg-cover bg-center" data-alt="Portrait of Emily Wong" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAERTPqAZSQchRvJB561Rrq26l6i_li-iZWEukZqCrB8K7Quef-Z6yJrisQDSyiNF99yxyK9osy2k9Ax8wVbuWqfYkOxEx4_j3e4hzxw9_gBoxug92kQq_sEF6AfVviEIRa7-lAzTgMlqZEQ81a8vAkQIA45puFjnXe4xoJsXbCRB6eYmzv7W62-n6d4R1lBWkQhkaEEkpo38_qHJVgznzh-vTK_MPMCAUV-N8UObgPdOeG1i6WXkP-V8HmLLqizmeFqEriZMoU0tw');"></div>
+<div>
+<h4 class="font-bold text-text-main-light dark:text-white leading-tight">Emily Wong</h4>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark font-mono mt-0.5">NDIS #382710492</p>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            Active
+                                        </span>
+</div>
+<div class="text-xs text-text-sub-light dark:text-text-sub-dark flex justify-between border-b border-border-light dark:border-border-dark pb-3">
+<span>Plan Dates:</span>
+<span class="font-medium text-text-main-light dark:text-white">10 Oct 2023 - 10 Oct 2024</span>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Core Funding -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Core</span>
+<span class="text-text-sub-light">$2k / $18k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 11%"></div>
+</div>
+</div>
+<!-- Capacity Building -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Capacity</span>
+<span class="text-text-sub-light">$4k / $12k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-blue-400 rounded-full" style="width: 33%"></div>
+</div>
+</div>
+<!-- Capital -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-text-main-light dark:text-white">Capital</span>
+<span class="text-text-sub-light">$1k / $5k</span>
+</div>
+<div class="h-2 w-full bg-background-light dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-indigo-300 rounded-full" style="width: 20%"></div>
+</div>
+</div>
+</div>
+<div class="mt-2 pt-3 border-t border-border-light dark:border-border-dark flex justify-end">
+<button class="text-primary hover:text-primary-light text-sm font-semibold flex items-center gap-1">
+                                            View Details <span class="material-icons-round text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Sidebar (30%) -->
+<aside class="w-full lg:w-[360px] flex flex-col gap-6 shrink-0">
+<!-- Plan Alerts -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-soft p-5">
+<h3 class="text-sm font-bold text-text-main-light dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+<span class="material-icons-round text-amber-500 text-lg">notifications_active</span>
+                                    Plan Alerts
+                                </h3>
+<div class="flex flex-col gap-3">
+<!-- Alert 1 -->
+<div class="flex gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20">
+<div class="mt-0.5">
+<span class="material-icons-round text-amber-600 dark:text-amber-500 text-sm">warning</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-text-main-light dark:text-white">Review Sarah J. Budget</p>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-1">Plan expires in 14 days. Schedule review.</p>
+</div>
+</div>
+<!-- Alert 2 -->
+<div class="flex gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
+<div class="mt-0.5">
+<span class="material-icons-round text-red-600 dark:text-red-500 text-sm">trending_down</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-text-main-light dark:text-white">David R. Funds Low</p>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-1">Core budget at 99% utilization.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Funding Overview Chart -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-soft p-5">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-sm font-bold text-text-main-light dark:text-white uppercase tracking-wider">Funding Overview</h3>
+<button class="text-text-sub-light hover:text-primary"><span class="material-icons-round text-lg">more_horiz</span></button>
+</div>
+<div class="flex flex-col items-center justify-center py-4 relative">
+<!-- CSS Donut Chart approximation -->
+<div class="relative w-40 h-40 rounded-full" style="background: conic-gradient(#5048e5 0% 55%, #60a5fa 55% 85%, #a5b4fc 85% 100%);">
+<div class="absolute inset-4 bg-surface-light dark:bg-surface-dark rounded-full flex items-center justify-center flex-col">
+<span class="text-2xl font-bold text-text-main-light dark:text-white">4.2M</span>
+<span class="text-[10px] uppercase text-text-sub-light font-semibold tracking-wide">Total</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2 mt-2">
+<div class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-text-main-light dark:text-white">Core Supports</span>
+</div>
+<span class="font-semibold text-text-main-light dark:text-white">55%</span>
+</div>
+<div class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-blue-400"></div>
+<span class="text-text-main-light dark:text-white">Capacity Building</span>
+</div>
+<span class="font-semibold text-text-main-light dark:text-white">30%</span>
+</div>
+<div class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-indigo-300"></div>
+<span class="text-text-main-light dark:text-white">Capital</span>
+</div>
+<span class="font-semibold text-text-main-light dark:text-white">15%</span>
+</div>
+</div>
+</div>
+<!-- Quick Actions -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-soft p-5">
+<h3 class="text-sm font-bold text-text-main-light dark:text-white uppercase tracking-wider mb-4">Quick Actions</h3>
+<div class="flex flex-col gap-2">
+<button class="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-background-light dark:hover:bg-slate-800 transition-colors text-left group">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-icons-round text-sm">post_add</span>
+</div>
+<span class="text-sm font-medium text-text-main-light dark:text-white">Generate Report</span>
+</button>
+<button class="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-background-light dark:hover:bg-slate-800 transition-colors text-left group">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-icons-round text-sm">edit_document</span>
+</div>
+<span class="text-sm font-medium text-text-main-light dark:text-white">Update Budget</span>
+</button>
+<button class="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-background-light dark:hover:bg-slate-800 transition-colors text-left group">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-icons-round text-sm">mail</span>
+</div>
+<span class="text-sm font-medium text-text-main-light dark:text-white">Email Participants</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+</div>
+</body></html>

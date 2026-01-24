@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quantum Toolkit - User Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4F46E5", // Indigo-600
+                        "primary-light": "#E0E7FF",
+                        "background-light": "#F3F4F6", // Gray-100/50 mix basically
+                        "background-dark": "#0F172A", // Slate-900
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B", // Slate-800
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#334155",
+                        "text-main-light": "#111827",
+                        "text-main-dark": "#F8FAFC",
+                        "text-sub-light": "#6B7280",
+                        "text-sub-dark": "#94A3B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem", // 12px
+                        "xl": "1rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col h-full flex-shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark lg:border-none">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                <span class="material-icons-round text-xl">all_inclusive</span>
+            </div>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Quantum</span>
+        </div>
+    </div>
+    <div class="px-5 mt-4 mb-2">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-icons-round text-gray-400 text-sm">search</span>
+            </span>
+            <input class="w-full bg-gray-50 dark:bg-slate-700/50 border-none rounded-lg py-2 pl-9 pr-3 text-sm text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-primary placeholder-gray-400 dark:placeholder-slate-500" placeholder="Search data..." type="text"/>
+            <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <span class="text-gray-400 text-xs border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5">⌘K</span>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Clinical Workflow</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="dashboard.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="font-medium text-sm">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="participants.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">people</span>
+                        <span class="font-medium text-sm">Participants</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="reports.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">assignment</span>
+                        <span class="font-medium text-sm">Reports &amp; Docs</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ai.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">psychology</span>
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="ml-auto bg-indigo-100 dark:bg-indigo-900/40 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="toolkit.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">construction</span>
+                        <span class="font-medium text-sm">Toolkit</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Compliance</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">verified_user</span>
+                        <span class="font-medium text-sm">Audits</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="ndisplans.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">history_edu</span>
+                        <span class="font-medium text-sm">NDIS Plans</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="px-2 text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider mb-2">Settings</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="general.html">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">settings</span>
+                        <span class="font-medium text-sm">General</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-3 px-2 py-2.5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-DEFAULT transition-colors group" href="#">
+                        <span class="material-icons-round text-[20px] group-hover:text-primary transition-colors">help_outline</span>
+                        <span class="font-medium text-sm">Help Center</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="p-4 border-t border-border-light dark:border-border-dark">
+        <a href="profile.html" class="flex items-center gap-3 w-full hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-colors">
+            <img alt="User avatar" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3PRJomuYWo10PIj-wZ4oATztLJHU09M0yzJNrEj9PExcDf5irhFSknCmiKVhIpHuE4326mJFaMwoiucPKgNbVWJYxfzdkmyA-t4lIl6dIWQMk6zReuWABMGjJb68EgIVNIwi_wIUQVkBLhK3I9Gt-mQSt3N1NR1couViFXGZXp6c9r1JSV1qz03QqNMe4LrKh9goVNRi7QBvro3HK6SDVnBkcQwmT3-bgiNqy6TS7PRK8rgX7QlIiZMYr0io3FhCbpUqj8sqRCIs"/>
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Sarah Chen</p>
+                <p class="text-xs text-text-sub-light dark:text-text-sub-dark">Senior OT</p>
+            </div>
+        </a>
+    </div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-light dark:bg-background-dark">
+<header class="h-16 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 lg:px-8">
+<h1 class="text-xl font-bold text-gray-900 dark:text-white">User Profile</h1>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+<span class="material-icons-round text-[22px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+</button>
+<button class="p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors lg:hidden">
+<span class="material-icons-round text-[22px]">search</span>
+</button>
+<div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1 hidden lg:block"></div>
+<button class="hidden lg:flex items-center gap-2 text-sm text-text-sub-light dark:text-text-sub-dark hover:text-primary font-medium">
+<span class="material-icons-round text-sm">calendar_today</span>
+<span>Oct 24, 2023</span>
+<span class="material-icons-round text-sm">expand_more</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-4 md:p-8 lg:px-12">
+<div class="max-w-6xl mx-auto space-y-6">
+<!-- Profile Header -->
+<div class="bg-white dark:bg-[#1a1b2e] rounded-xl shadow-sm border border-border-light dark:border-border-dark p-6 sm:p-8">
+<div class="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between">
+<div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-24 w-24 border-4 border-white dark:border-[#1a1b2e] shadow-md" data-alt="Large profile avatar of Sarah Chen" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBPwFPtrSRqhMnDIEBpqckVKDTVhpSFcpE75Ltp-hVekg955bov_EXHlH1WS83R9ObRAkX0vUxdCjv9mH-fD5BaHjUoZgPZwgyd0YFTt8XHqvVceU0Cnpy2IrTvlF6D5N7uiPoDJfMGQQsdzk1n2u2OYfdwQKCzYDj1xBXJf-zdLKaPXCGYE-RAj1y66plrbKAzfAjcU-SSsZVEAUtQbjcSZt4zLrWIC38oMyNgKUjqlBpyZsDbDLzUc5RxmDAhExPUqWdALPNvfk8");'></div>
+<div class="absolute bottom-1 right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white dark:border-[#1a1b2e]" title="Active"></div>
+</div>
+<div class="flex flex-col justify-center space-y-1">
+<h1 class="text-gray-900 dark:text-white text-3xl font-bold leading-tight tracking-tight">Sarah Chen</h1>
+<div class="flex items-center gap-2 text-primary dark:text-indigo-400 font-medium text-lg">
+<span class="material-symbols-outlined text-[20px]">medical_services</span>
+<span>Senior Occupational Therapist</span>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1 justify-center sm:justify-start">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+                                Melbourne, VIC
+                            </p>
+</div>
+</div>
+<button class="w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span>Edit Profile</span>
+</button>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<div class="border-b border-border-light dark:border-border-dark">
+<nav aria-label="Tabs" class="-mb-px flex gap-8 overflow-x-auto">
+<a class="border-primary text-primary whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]">person</span>
+                        Profile
+                    </a>
+<a class="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                        Preferences
+                    </a>
+<a class="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span>
+                        Activity
+                    </a>
+<a class="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+                        Sessions
+                    </a>
+</nav>
+</div>
+<!-- Main Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column (Personal & Professional Info) -->
+<div class="lg:col-span-7 space-y-6">
+<!-- Personal Information Card -->
+<div class="bg-white dark:bg-[#1a1b2e] rounded-xl shadow-sm border border-border-light dark:border-border-dark p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">badge</span>
+                                Personal Information
+                            </h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<label class="block">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</span>
+<div class="mt-1 relative rounded-md shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 text-[20px]">person</span>
+</div>
+<input class="block w-full pl-10 h-11 rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm" type="text" value="Sarah Chen"/>
+</div>
+</label>
+<label class="block">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</span>
+<div class="mt-1 relative rounded-md shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 text-[20px]">mail</span>
+</div>
+<input class="block w-full pl-10 h-11 rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm" type="email" value="sarah.chen@quantum.health"/>
+</div>
+</label>
+<label class="block">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</span>
+<div class="mt-1 relative rounded-md shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 text-[20px]">call</span>
+</div>
+<input class="block w-full pl-10 h-11 rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm" type="text" value="+61 400 000 000"/>
+</div>
+</label>
+<label class="block">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Role Title</span>
+<div class="mt-1 relative rounded-md shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 text-[20px]">work</span>
+</div>
+<input class="block w-full pl-10 h-11 rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm" disabled="" type="text" value="Senior Occupational Therapist"/>
+</div>
+</label>
+</div>
+</div>
+<!-- Professional Details Card -->
+<div class="bg-white dark:bg-[#1a1b2e] rounded-xl shadow-sm border border-border-light dark:border-border-dark p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">verified</span>
+                                Professional Details
+                            </h3>
+<span class="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">Verified</span>
+</div>
+<div class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<label class="block">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">AHPRA Registration Number</span>
+<div class="mt-1 relative rounded-md shadow-sm">
+<input class="block w-full h-11 rounded-lg border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/10 text-gray-900 dark:text-white focus:ring-green-500 focus:border-green-500 sm:text-sm font-mono tracking-wide" readonly="" type="text" value="OTW000123456"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span>
+</div>
+</div>
+<p class="mt-1 text-xs text-gray-500">Valid until 30/11/2024</p>
+</label>
+<label class="block">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Provider Number</span>
+<input class="block w-full h-11 rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm mt-1" type="text" value="1234567A"/>
+</label>
+</div>
+<div class="border-t border-gray-100 dark:border-gray-800 pt-6">
+<div class="flex justify-between items-center mb-3">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Digital Signature</span>
+<button class="text-xs text-primary font-bold hover:underline">Update Signature</button>
+</div>
+<div class="h-32 w-full bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden relative group cursor-pointer hover:border-primary transition-colors">
+<img alt="Digital signature preview" class="h-16 opacity-60 dark:invert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABEgK9GT-dnwO7CBB17L4x9pWit7YkJbnSPYCd8s2U7qw2pZ24lC80hrBqZbRlNTZ7oI9kF4YTMwpP-UODbsOMiG_fPLa_GfE4_xXE46dbw8-1FhWU1ARjgnOFOmhc3_ItjTqaRotvBj6TsPFd2TYG3wKMAkSA0_XU93tyNIt4y-pVRfjxpEssnQtMqzRzNeHVenl_y0iwtJuXbSvi-e2I7g1UVae4meTOkRqPgppWFQkUoBCp8LVN-9qRS8aD0aq9RZaWP-tMlx0"/>
+<div class="absolute inset-0 bg-black/5 hidden group-hover:flex items-center justify-center transition-all">
+<span class="bg-white dark:bg-gray-800 px-3 py-1 rounded-md text-xs font-bold shadow-sm">Click to upload new</span>
+</div>
+</div>
+<p class="mt-2 text-xs text-gray-500">This signature will be applied to all finalized NDIS reports.</p>
+</div>
+</div>
+</div>
+<!-- Security Card -->
+<div class="bg-white dark:bg-[#1a1b2e] rounded-xl shadow-sm border border-border-light dark:border-border-dark p-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">security</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-gray-900 dark:text-white">Two-Factor Authentication</h4>
+<p class="text-xs text-gray-500 dark:text-gray-400">Add an extra layer of security to your account.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Right Column (Stats & Activity) -->
+<div class="lg:col-span-5 space-y-6">
+<!-- Stats Card -->
+<div class="bg-white dark:bg-[#1a1b2e] rounded-xl shadow-sm border border-border-light dark:border-border-dark p-6">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6">Performance Overview</h3>
+<div class="grid grid-cols-1 gap-4">
+<!-- Stat Item 1 -->
+<div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 relative overflow-hidden group">
+<div class="flex justify-between items-start z-10 relative">
+<div>
+<p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Reports Generated</p>
+<h4 class="text-3xl font-bold text-gray-900 dark:text-white mt-1">142</h4>
+</div>
+<span class="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900/30 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">
+<span class="material-symbols-outlined text-[14px] mr-0.5">trending_up</span>
+                                        +12%
+                                    </span>
+</div>
+<!-- Decorative Sparkline placeholder -->
+<div class="mt-4 h-10 w-full flex items-end gap-1 opacity-40">
+<div class="w-1/6 bg-primary h-[40%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary h-[60%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary h-[30%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary h-[80%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary h-[50%] rounded-t-sm"></div>
+<div class="w-1/6 bg-primary h-[90%] rounded-t-sm"></div>
+</div>
+</div>
+<!-- Stat Item 2 -->
+<div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 relative overflow-hidden">
+<div class="flex justify-between items-start z-10 relative">
+<div>
+<p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Active Participants</p>
+<h4 class="text-3xl font-bold text-gray-900 dark:text-white mt-1">28</h4>
+</div>
+<span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 ring-1 ring-inset ring-gray-500/10">
+                                        Stable
+                                    </span>
+</div>
+<div class="mt-4 h-10 w-full flex items-end gap-1 opacity-40">
+<div class="w-1/6 bg-indigo-400 h-[50%] rounded-t-sm"></div>
+<div class="w-1/6 bg-indigo-400 h-[50%] rounded-t-sm"></div>
+<div class="w-1/6 bg-indigo-400 h-[55%] rounded-t-sm"></div>
+<div class="w-1/6 bg-indigo-400 h-[50%] rounded-t-sm"></div>
+<div class="w-1/6 bg-indigo-400 h-[60%] rounded-t-sm"></div>
+<div class="w-1/6 bg-indigo-400 h-[60%] rounded-t-sm"></div>
+</div>
+</div>
+<!-- Stat Item 3 -->
+<div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 relative overflow-hidden">
+<div class="flex justify-between items-start z-10 relative">
+<div>
+<p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sessions Logged</p>
+<h4 class="text-3xl font-bold text-gray-900 dark:text-white mt-1">312</h4>
+</div>
+<span class="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900/30 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">
+<span class="material-symbols-outlined text-[14px] mr-0.5">trending_up</span>
+                                        +5%
+                                    </span>
+</div>
+<div class="mt-4 h-10 w-full flex items-end gap-1 opacity-40">
+<div class="w-1/6 bg-teal-400 h-[30%] rounded-t-sm"></div>
+<div class="w-1/6 bg-teal-400 h-[45%] rounded-t-sm"></div>
+<div class="w-1/6 bg-teal-400 h-[60%] rounded-t-sm"></div>
+<div class="w-1/6 bg-teal-400 h-[55%] rounded-t-sm"></div>
+<div class="w-1/6 bg-teal-400 h-[70%] rounded-t-sm"></div>
+<div class="w-1/6 bg-teal-400 h-[85%] rounded-t-sm"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Timeline -->
+<div class="bg-white dark:bg-[#1a1b2e] rounded-xl shadow-sm border border-border-light dark:border-border-dark p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Recent Activity</h3>
+<a class="text-xs font-bold text-primary hover:underline" href="#">View All</a>
+</div>
+<div class="relative pl-4 border-l border-gray-200 dark:border-gray-700 space-y-8">
+<!-- Timeline Item 1 -->
+<div class="relative group">
+<div class="absolute -left-[21px] bg-white dark:bg-[#1a1b2e] h-4 w-4 rounded-full border-2 border-primary flex items-center justify-center">
+<div class="h-2 w-2 rounded-full bg-primary"></div>
+</div>
+<div>
+<p class="text-sm font-semibold text-gray-900 dark:text-white">Submitted NDIS Progress Report</p>
+<p class="text-xs text-gray-500 mt-1">For <span class="text-indigo-600 dark:text-indigo-400 font-medium">Michael Johnson</span></p>
+<span class="text-xs text-gray-400 mt-2 block">2 hours ago</span>
+</div>
+</div>
+<!-- Timeline Item 2 -->
+<div class="relative group">
+<div class="absolute -left-[21px] bg-white dark:bg-[#1a1b2e] h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
+<div>
+<p class="text-sm font-semibold text-gray-900 dark:text-white">Updated Client Notes</p>
+<p class="text-xs text-gray-500 mt-1">Session notes for initial assessment</p>
+<span class="text-xs text-gray-400 mt-2 block">Yesterday, 4:30 PM</span>
+</div>
+</div>
+<!-- Timeline Item 3 -->
+<div class="relative group">
+<div class="absolute -left-[21px] bg-white dark:bg-[#1a1b2e] h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
+<div>
+<p class="text-sm font-semibold text-gray-900 dark:text-white">Password Changed</p>
+<p class="text-xs text-gray-500 mt-1">Security update via settings</p>
+<span class="text-xs text-gray-400 mt-2 block">Oct 24, 2023</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
