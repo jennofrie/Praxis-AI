@@ -1,0 +1,30 @@
+# Supabase Edge Functions Configuration
+# Project: Praxis AI - NDIS Clinical Documentation Platform
+# Project ID: nwwesogezwemoevhfvgi
+
+[project]
+id = "nwwesogezwemoevhfvgi"
+name = "praxis-ai"
+
+# Functions configuration
+[functions]
+verify_jwt = true  # Require authentication for all functions
+
+# Individual function settings
+[functions.fca-pipeline]
+verify_jwt = true
+
+[functions.evidence-matrix]
+verify_jwt = true
+
+[functions.at-justification]
+verify_jwt = true
+
+[functions.quality-checker]
+verify_jwt = true
+
+[functions.goal-progress]
+verify_jwt = true
+
+[functions.ai-chat]
+verify_jwt = true

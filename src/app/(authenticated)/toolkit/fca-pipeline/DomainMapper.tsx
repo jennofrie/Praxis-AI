@@ -15,32 +15,46 @@ export function DomainMapper({ data, updateData, next, back }: Props) {
   const [rawNotes, setRawNotes] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     setIsAnalyzing(true);
-    // SIMULATION: In production, call /api/ai/map-domains with rawNotes
-    setTimeout(() => {
-      // Mock result
-      const mockObservations: Record<string, string[]> = {
-        "Mobility": [
-          "Observed difficulty standing from seated position without armrest support.",
-          "Gait appears steady but slow (approx 0.5m/s)."
-        ],
-        "Self-Care": [
-          "Reported inability to fasten buttons on shirt due to fine motor tremor.",
-          "Requires verbal prompting for grooming sequence."
-        ],
-        "Social Interaction": [
-          "Maintained good eye contact during interview.",
-          "Expressed anxiety about attending community groups."
-        ]
-      };
+    
+    try {
+      const response = await fetch('/api/ai/fca-pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'map-domains',
+          notes: rawNotes 
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        console.error('Domain mapping failed:', result.error);
+        return;
+      }
+      
+      // Convert API response to observations format
+      const observations: Record<string, string[]> = {};
+      
+      if (result.data?.mappings) {
+        result.data.mappings.forEach((mapping: { domain: string; observations: string[] }) => {
+          if (mapping.observations?.length > 0) {
+            observations[mapping.domain] = mapping.observations;
+          }
+        });
+      }
       
       updateData({
         ...data,
-        observations: mockObservations
+        observations
       });
+    } catch (error) {
+      console.error('Error mapping domains:', error);
+    } finally {
       setIsAnalyzing(false);
-    }, 2000);
+    }
   };
 
   const domainCompleteness = NDIS_DOMAINS.map(d => ({

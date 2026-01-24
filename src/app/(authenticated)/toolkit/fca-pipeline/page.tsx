@@ -84,16 +84,78 @@ export default function FCAPipeline() {
                  data={data} 
                  updateData={setData} 
                  back={() => setStep("mapping")} 
+                 onSave={() => setStep("review")}
                />
             )}
              {step === "review" && (
-               <div className="text-center py-20 text-slate-500">Review Component Coming Soon</div>
+               <ReviewStep data={data} onReset={() => {
+                 setData({
+                   participantName: "",
+                   ndisNumber: "",
+                   date: new Date().toISOString().split("T")[0],
+                   diagnosis: "",
+                   observations: {},
+                   goals: []
+                 });
+                 setStep("intake");
+               }} />
             )}
           </div>
 
         </div>
       </div>
     </>
+  );
+}
+
+function ReviewStep({ data, onReset }: { data: FCASessionData, onReset: () => void }) {
+  return (
+    <div className="text-center py-12 max-w-lg mx-auto">
+      <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+        <CheckCircle className="w-10 h-10 text-emerald-600" />
+      </div>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Assessment Complete</h2>
+      <p className="text-slate-500 dark:text-slate-400 mb-6">
+        Your FCA draft for <span className="font-semibold text-slate-900 dark:text-white">{data.participantName}</span> has been saved and downloaded.
+      </p>
+      
+      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 text-left mb-8">
+        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Summary</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-slate-500">Participant:</span>
+            <span className="font-medium text-slate-900 dark:text-white">{data.participantName}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500">NDIS Number:</span>
+            <span className="font-medium text-slate-900 dark:text-white">{data.ndisNumber || "N/A"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500">Diagnosis:</span>
+            <span className="font-medium text-slate-900 dark:text-white">{data.diagnosis || "N/A"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500">Domains Mapped:</span>
+            <span className="font-medium text-slate-900 dark:text-white">{Object.keys(data.observations).length}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4 justify-center">
+        <Link 
+          href="/toolkit"
+          className="px-6 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+        >
+          Back to Toolkit
+        </Link>
+        <button 
+          onClick={onReset}
+          className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+        >
+          Start New Assessment
+        </button>
+      </div>
+    </div>
   );
 }
 

@@ -44,6 +44,11 @@ interface ToolCardProps {
   badge?: string;
   badgeColor?: string;
   iconBg: string;
+  href?: string;
+}
+
+interface QuickActionLinkProps extends QuickActionProps {
+  href: string;
 }
 
 interface ActivityItemProps {
@@ -99,10 +104,10 @@ export default function Toolkit() {
         <section>
           <h2 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Quick Actions</h2>
           <div className="flex flex-wrap gap-3">
-            <QuickAction icon={Zap} label="New Note" color="text-amber-500" />
-            <QuickAction icon={FileSearch} label="Check Compliance" color="text-emerald-500" />
-            <QuickAction icon={Scale} label="Justify AT" color="text-indigo-500" />
-            <QuickAction icon={History} label="Resume Draft" color="text-slate-500" />
+            <QuickActionLink icon={Zap} label="New FCA" color="text-amber-500" href="/toolkit/fca-pipeline" />
+            <QuickActionLink icon={FileSearch} label="Check Compliance" color="text-emerald-500" href="/toolkit/quality-checker" />
+            <QuickActionLink icon={Scale} label="Justify AT" color="text-indigo-500" href="/toolkit/at-justification" />
+            <QuickActionLink icon={LayoutGrid} label="Evidence Matrix" color="text-violet-500" href="/toolkit/evidence-matrix" />
           </div>
         </section>
 
@@ -128,6 +133,7 @@ export default function Toolkit() {
                   color="bg-blue-500"
                   features={["Voice Dictation", "Domain Mapping"]}
                   status="Ready"
+                  href="/toolkit/fca-pipeline"
                 />
                 <WorkflowCard 
                   title="2. Evidence Matrix"
@@ -136,6 +142,7 @@ export default function Toolkit() {
                   color="bg-indigo-500"
                   features={["Gap Analysis", "Heatmap"]}
                   status="Ready"
+                  href="/toolkit/evidence-matrix"
                 />
                 <WorkflowCard 
                   title="3. FCA Pipeline"
@@ -143,7 +150,7 @@ export default function Toolkit() {
                   icon={PenTool}
                   color="bg-violet-500"
                   features={["Auto-Narrative", "Citation"]}
-                  status="Beta"
+                  status="Ready"
                   href="/toolkit/fca-pipeline"
                 />
                 <WorkflowCard 
@@ -152,7 +159,8 @@ export default function Toolkit() {
                   icon={Scale}
                   color="bg-fuchsia-500"
                   features={["Comparison", "Reasonable & Necessary"]}
-                  status="Alpha"
+                  status="Ready"
+                  href="/toolkit/at-justification"
                 />
               </div>
 
@@ -169,6 +177,16 @@ export default function Toolkit() {
                     badge="Essential"
                     iconBg="bg-emerald-100 text-emerald-600"
                     badgeColor="bg-emerald-100 text-emerald-700"
+                    href="/toolkit/quality-checker"
+                  />
+                  <ToolCard 
+                    title="Goal Progress Tracker"
+                    description="Track SMART goals and session outcomes."
+                    icon={CheckCircle}
+                    badge="New"
+                    iconBg="bg-blue-100 text-blue-600"
+                    badgeColor="bg-blue-100 text-blue-700"
+                    href="/toolkit/goal-progress"
                   />
                   <ToolCard 
                     title="Consent & Audit Trail"
@@ -177,6 +195,7 @@ export default function Toolkit() {
                     badge="Secure"
                     iconBg="bg-slate-100 text-slate-600"
                     badgeColor="bg-slate-100 text-slate-700"
+                    href="/audits"
                   />
                 </div>
               </div>
@@ -238,14 +257,14 @@ export default function Toolkit() {
   );
 }
 
-function QuickAction({ icon: Icon, label, color }: QuickActionProps) {
+function QuickActionLink({ icon: Icon, label, color, href }: QuickActionLinkProps) {
   return (
-    <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm hover:shadow-md hover:border-indigo-300 transition-all group">
+    <Link href={href} className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm hover:shadow-md hover:border-indigo-300 transition-all group">
       <div className={`p-1.5 rounded-md bg-slate-50 dark:bg-slate-800 ${color} group-hover:scale-110 transition-transform`}>
         <Icon className="w-4 h-4" />
       </div>
       <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</span>
-    </button>
+    </Link>
   );
 }
 
@@ -279,8 +298,8 @@ function WorkflowCard({ title, desc, icon: Icon, color, features, status, href }
   return CardContent;
 }
 
-function ToolCard({ title, description, icon: Icon, badge, badgeColor, iconBg }: ToolCardProps) {
-  return (
+function ToolCard({ title, description, icon: Icon, badge, badgeColor, iconBg, href }: ToolCardProps) {
+  const CardContent = (
     <div className="flex p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 transition-colors cursor-pointer group">
       <div className={`${iconBg} w-12 h-12 rounded-lg flex items-center justify-center shrink-0 mr-4`}>
         <Icon className="w-6 h-6" />
@@ -295,6 +314,12 @@ function ToolCard({ title, description, icon: Icon, badge, badgeColor, iconBg }:
       <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 ml-auto self-center group-hover:text-indigo-500 transition-colors" />
     </div>
   );
+
+  if (href) {
+    return <Link href={href}>{CardContent}</Link>;
+  }
+
+  return CardContent;
 }
 
 function ActivityItem({ title, action, time, icon: Icon, color }: ActivityItemProps) {

@@ -2,48 +2,114 @@
 
 import { useState } from "react";
 import { FCASessionData } from "./types";
-import { Sparkles, ChevronLeft, Save, Copy, RefreshCw, AlertCircle } from "lucide-react";
+import { Sparkles, ChevronLeft, Save, Copy, RefreshCw, AlertCircle, Check, Download } from "lucide-react";
 
 interface Props {
   data: FCASessionData;
   updateData: (d: FCASessionData) => void;
   back: () => void;
+  onSave: () => void;
 }
 
-export function NarrativeBuilder({ data, updateData, back }: Props) {
+export function NarrativeBuilder({ data, updateData, back, onSave }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const [narrative, setNarrative] = useState(data.generatedNarrative || "");
 
-  const handleGenerate = () => {
-    setIsGenerating(true);
-    // SIMULATION: Call /api/ai/generate-narrative
+  const handleCopy = async () => {
+    if (narrative) {
+      await navigator.clipboard.writeText(narrative);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!narrative) return;
+    
+    const fileName = `FCA_${data.participantName.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.md`;
+    const blob = new Blob([narrative], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSave = async () => {
+    if (!narrative) return;
+    
+    setIsSaving(true);
+    
+    // Download the file
+    handleDownload();
+    
+    // Simulate save delay for UX feedback
     setTimeout(() => {
-      const draft = `
+      setIsSaving(false);
+      onSave();
+    }, 500);
+  };
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    
+    try {
+      // Convert observations to domain format for API
+      const domains = Object.entries(data.observations).map(([domain, observations]) => ({
+        domain,
+        observations,
+        confidence: 'high' as const, // Default to high since these are clinician-verified
+      }));
+      
+      const response = await fetch('/api/ai/fca-pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-narrative',
+          participantName: data.participantName,
+          diagnosis: data.diagnosis,
+          domains,
+          goals: data.goals,
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        console.error('Narrative generation failed:', result.error);
+        // Fallback to a basic template if API fails
+        const fallbackDraft = `
 **Functional Capacity Assessment Summary**
 
 **Participant:** ${data.participantName}
 **Diagnosis:** ${data.diagnosis}
 
-**Executive Summary**
-The participant presents with significant functional impacts related to ${data.diagnosis}. Observations from today's session indicate primary challenges in mobility and self-care domains, necessitating ongoing support.
+[AI generation failed. Please review domain observations and try again.]
 
-**Mobility**
-Observed gait velocity was approximately 0.5m/s, which places the participant at increased risk of community ambulation failure [Observed: "slow gait"]. Difficulty rising from a seated position suggests reduced lower limb strength (quadriceps), requiring the use of upper limbs for support [Observed: "difficulty standing"]. This limitation impacts their ability to independently transfer in the home environment.
-
-**Self-Care**
-Fine motor tremors were noted to interfere with fastening buttons, indicating a need for adaptive clothing or dressing aids [Observed: "inability to fasten buttons"]. Verbal prompting is currently required for grooming tasks to ensure sequencing is completed correctly [Observed: "requires prompting"].
-
-**Clinical Reasoning & Recommendations**
-Based on the observed functional deficits, it is recommended to:
-1. Trial a seat-lift chair to assist with transfers.
-2. Introduce button hooks or velcro-adapted clothing.
-3. Continue weekly OT to address fine motor coordination.
-      `.trim();
+**Observations:**
+${Object.entries(data.observations).map(([domain, obs]) => 
+  `\n**${domain}**\n${(obs as string[]).map(o => `- ${o}`).join('\n')}`
+).join('\n')}
+        `.trim();
+        
+        setNarrative(fallbackDraft);
+        updateData({ ...data, generatedNarrative: fallbackDraft });
+        return;
+      }
       
-      setNarrative(draft);
-      updateData({ ...data, generatedNarrative: draft });
+      const generatedNarrative = result.narrative || '';
+      setNarrative(generatedNarrative);
+      updateData({ ...data, generatedNarrative });
+    } catch (error) {
+      console.error('Error generating narrative:', error);
+    } finally {
       setIsGenerating(false);
-    }, 2500);
+    }
   };
 
   return (
@@ -96,8 +162,19 @@ Based on the observed functional deficits, it is recommended to:
               {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {narrative ? "Regenerate" : "Generate Draft"}
             </button>
-             <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-              <Copy className="w-4 h-4" />
+             <button 
+              onClick={handleCopy}
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Copy to clipboard"
+            >
+              {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+            </button>
+            <button 
+              onClick={handleDownload}
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Download as file"
+            >
+              <Download className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -122,8 +199,13 @@ Based on the observed functional deficits, it is recommended to:
             <ChevronLeft className="w-4 h-4" /> Back
           </button>
           
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors shadow-md shadow-emerald-600/20">
-            <Save className="w-4 h-4" /> Save & Finish
+          <button 
+            onClick={handleSave}
+            disabled={!narrative || isSaving}
+            className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors shadow-md shadow-emerald-600/20"
+          >
+            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSaving ? "Saving..." : "Save & Finish"}
           </button>
         </div>
       </div>
