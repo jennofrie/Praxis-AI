@@ -1,0 +1,11 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logo-gradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366F1" /> <!-- Indigo 500 -->
+      <stop offset="100%" stop-color="#8B5CF6" /> <!-- Violet 500 -->
+    </linearGradient>
+  </defs>
+  <path d="M20 4L36 12V28L20 36L4 28V12L20 4Z" stroke="url(#logo-gradient)" stroke-width="3" stroke-linejoin="round" />
+  <path d="M20 12L28 16V24L20 28L12 24V16L20 12Z" fill="url(#logo-gradient)" opacity="0.5" />
+  <circle cx="20" cy="20" r="3" fill="white" />
+</svg>

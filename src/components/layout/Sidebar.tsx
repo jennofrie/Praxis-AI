@@ -13,8 +13,7 @@ import {
   Settings, 
   HelpCircle, 
   Search,
-  Command,
-  Infinity
+  Command
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,12 +39,12 @@ export function Sidebar() {
     <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full flex-shrink-0 z-20">
       {/* Brand */}
       <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 lg:border-none">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
-            <Infinity className="w-5 h-5" />
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 flex items-center justify-center">
+            <img src="/logo.svg" alt="Spectra Praxis" className="w-8 h-8" />
           </div>
           <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Spectra Praxis</span>
-        </div>
+        </Link>
       </div>
 
       {/* Search */}
