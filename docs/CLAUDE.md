@@ -22,12 +22,15 @@ Praxis AI (Praxis AI Platform) is a clinical workflow management system for heal
 - **Accessibility**: WCAG 2.1 AA compliance minimum
 
 ### Technology Stack
-- **Frontend**: Next.js 16+ (App Router), React 19+, TypeScript 5
+- **Frontend**: Next.js 16.1.4 (App Router), React 19.2.3, TypeScript 5
 - **Styling**: Tailwind CSS 4 with custom design system
+- **Backend**: Supabase (PostgreSQL, Edge Functions, Authentication, Storage)
+- **AI Integration**: Google Gemini 2.5 Pro / 2.0 Flash (tiered model usage)
 - **State Management**: React Context + Server Components
-- **Data Fetching**: React Server Components, Server Actions
+- **Data Fetching**: Supabase client, Server Actions
+- **PDF Processing**: pdf-parse, jsPDF for generation
 - **Testing**: Jest, React Testing Library, Playwright
-- **Deployment**: Vercel (staging), AWS (production)
+- **Deployment**: Vercel (frontend), Supabase (backend services)
 
 ---
 
@@ -123,22 +126,32 @@ export function ParticipantFilter() {
 
 ```
 src/
-├── app/                    # Next.js App Router pages
-│   ├── (dashboard)/       # Route group for dashboard layout
-│   ├── api/               # API routes
-│   └── layout.tsx         # Root layout
-├── components/            # Reusable components
-│   ├── ui/               # Base UI components (buttons, inputs)
-│   ├── features/         # Feature-specific components
-│   └── layouts/          # Layout components
-├── lib/                   # Utilities and helpers
-│   ├── db/               # Database client and queries
-│   ├── api/              # API client functions
-│   ├── utils/            # General utilities
-│   └── validators/       # Input validation schemas
-├── types/                 # TypeScript type definitions
-├── hooks/                 # Custom React hooks
-└── constants/            # Application constants
+├── app/                          # Next.js App Router pages
+│   ├── (authenticated)/         # Protected routes (dashboard, reports, toolkit)
+│   ├── api/ai/                  # AI feature API routes
+│   ├── globals.css              # Global styles and animations
+│   └── page.tsx                 # Landing page
+├── components/                   # Reusable components
+│   ├── layout/                  # Layout components (Header, Sidebar)
+│   ├── toolkit/                 # Clinical toolkit components
+│   ├── landing/                 # Landing page components
+│   └── ndis-plans/              # NDIS plan components
+├── lib/                         # Utilities and helpers
+│   ├── supabase/                # Supabase client configuration
+│   ├── pdf-export.ts            # PDF generation utilities
+│   ├── pdf-parser.ts            # PDF text extraction
+│   └── utils.ts                 # General utilities
+├── types/                       # TypeScript type definitions
+│   └── senior-planner.ts        # Section 34 & CoC types
+├── hooks/                       # Custom React hooks
+└── middleware.ts                # Auth middleware
+supabase/
+├── functions/                    # Edge Functions
+│   ├── senior-planner-audit/    # Section 34 Auditor
+│   ├── coc-eligibility-assessor/# CoC Assessor
+│   ├── _shared/                 # Shared utilities (CORS, Gemini client)
+│   └── [other-functions]/       # Additional AI features
+└── migrations/                   # Database migrations
 ```
 
 ### 3. Naming Conventions
@@ -152,26 +165,29 @@ src/
 ### 4. Error Handling
 
 ```typescript
-// ✅ GOOD: Comprehensive error handling
+// ✅ GOOD: Comprehensive error handling with Supabase
 async function createReport(participantId: string, data: ReportData) {
   try {
-    const report = await db.report.create({
-      data: {
-        participantId,
+    const supabase = createClient();
+
+    const { data: report, error } = await supabase
+      .from('reports')
+      .insert({
+        participant_id: participantId,
         ...data,
-      },
-    });
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Failed to create report', { error, participantId });
+      return { success: false, error: 'Failed to create report' };
+    }
 
     return { success: true, data: report };
   } catch (error) {
-    if (error instanceof ValidationError) {
-      return { success: false, error: 'Invalid report data' };
-    }
-
-    // Log error for monitoring
-    logger.error('Failed to create report', { error, participantId });
-
-    return { success: false, error: 'Failed to create report' };
+    console.error('Unexpected error creating report', { error, participantId });
+    return { success: false, error: 'An unexpected error occurred' };
   }
 }
 ```
@@ -179,32 +195,44 @@ async function createReport(participantId: string, data: ReportData) {
 ### 5. Security Considerations
 
 ```typescript
-// ✅ GOOD: Input validation
-import { z } from 'zod';
+// ✅ GOOD: Row Level Security (RLS) with Supabase
+// Database policies should enforce access control
+// Example: profiles table policy
+CREATE POLICY "Users can only view their own profile"
+  ON profiles FOR SELECT
+  USING (auth.uid() = id);
 
-const participantSchema = z.object({
-  firstName: z.string().min(1).max(100),
-  lastName: z.string().min(1).max(100),
-  ndisNumber: z.string().regex(/^\d{9}$/),
-  dateOfBirth: z.date(),
-});
+// ✅ GOOD: Input validation for Edge Functions
+interface AuditRequest {
+  documentType: string;
+  documentContent: string;
+  documentName?: string;
+  userId?: string;
+}
 
-// ✅ GOOD: Authorization checks
-async function getParticipant(id: string, userId: string) {
-  const participant = await db.participant.findUnique({
-    where: { id }
-  });
+const MIN_CONTENT_LENGTH = 100;
 
-  if (!participant) {
-    throw new NotFoundError('Participant not found');
+// Validate request
+if (!body.documentContent || body.documentContent.trim().length < MIN_CONTENT_LENGTH) {
+  return new Response(
+    JSON.stringify({ error: 'Insufficient content' }),
+    { status: 400, headers: corsHeaders }
+  );
+}
+
+// ✅ GOOD: Secure API routes with authentication
+export async function POST(request: Request) {
+  const supabase = createClient();
+
+  // Verify authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Ensure user has access to this participant
-  if (!await hasAccess(userId, participant.id)) {
-    throw new UnauthorizedError('Access denied');
-  }
-
-  return participant;
+  // Process authenticated request
+  // ...
 }
 ```
 
@@ -273,6 +301,291 @@ Before committing AI-generated code, verify:
 
 ---
 
+## 🚨 CRITICAL: Pre-Push Checklist
+
+**MANDATORY VERIFICATION BEFORE EVERY GITHUB PUSH**
+
+This checklist MUST be completed before pushing ANY changes to GitHub. Failing to complete these checks can break production deployments and block other developers.
+
+### 1. Build Verification
+```bash
+# Run production build
+npm run build
+
+# Verify exit code is 0 (success)
+echo $?  # Should output: 0
+```
+
+**Requirements:**
+- ✅ Build completes successfully with exit code 0
+- ✅ No build errors or warnings in output
+- ✅ All route segments compile correctly
+- ✅ Static page generation succeeds
+- ❌ NEVER push if build fails
+
+### 2. TypeScript Validation
+```bash
+# Check for TypeScript errors
+npx tsc --noEmit
+
+# Verify exit code is 0 (success)
+echo $?  # Should output: 0
+```
+
+**Common Issues to Check:**
+- [ ] No `any` types used (ZERO TOLERANCE)
+- [ ] No implicit `any` parameters
+- [ ] All function return types declared
+- [ ] All component props properly typed
+- [ ] No type assertions (`as`) without justification
+- [ ] Interface/type definitions exported correctly
+- [ ] No missing import statements
+- [ ] No unused variables or imports
+
+### 3. Lint Verification
+```bash
+# Run ESLint
+npm run lint
+
+# Check for errors (warnings are acceptable with justification)
+```
+
+**Fix all lint errors:**
+- [ ] No ESLint errors
+- [ ] Warnings reviewed and justified
+- [ ] Auto-fixable issues resolved with `npm run lint -- --fix`
+- [ ] Unused imports removed
+- [ ] Console.log statements removed (except in Edge Functions for debugging)
+
+### 4. Dependency Verification
+```bash
+# Check for dependency conflicts
+npm ls
+
+# Check for security vulnerabilities
+npm audit
+
+# Verify package-lock.json is committed
+git status package-lock.json
+```
+
+**Requirements:**
+- [ ] No dependency conflicts (no `UNMET DEPENDENCY` messages)
+- [ ] Critical/High vulnerabilities addressed
+- [ ] `package.json` and `package-lock.json` in sync
+- [ ] No duplicate dependencies
+- [ ] All peer dependencies satisfied
+- [ ] Only necessary packages installed
+
+### 5. Database Schema Verification (Supabase)
+
+**For migrations:**
+```bash
+# Review migration files
+ls -la supabase/migrations/
+
+# Check migration naming convention
+# Format: NNN_descriptive_name.sql
+```
+
+**Checklist:**
+- [ ] Migration files numbered sequentially
+- [ ] No missing columns in table definitions
+- [ ] RLS policies defined for new tables
+- [ ] Foreign key constraints properly set
+- [ ] Default values specified where needed
+- [ ] Indexes created for frequently queried columns
+- [ ] Migration tested locally before push
+
+### 6. Edge Function Validation
+
+**For Supabase Edge Functions:**
+```bash
+# Check function deployability
+cd supabase/functions/[function-name]
+deno check index.ts  # If deno is installed locally
+```
+
+**Checklist:**
+- [ ] All imports use JSR format (`jsr:@supabase/...`)
+- [ ] CORS headers properly configured
+- [ ] Environment variables accessed via `Deno.env.get()`
+- [ ] Error handling implemented
+- [ ] Request validation included
+- [ ] Response formats consistent
+- [ ] No hardcoded secrets or API keys
+- [ ] Logging added for debugging
+
+### 7. Code Completeness Check
+
+**CRITICAL: Verify no incomplete code:**
+
+- [ ] No `// TODO:` comments without implementation
+- [ ] No `console.log('test')` or debug statements
+- [ ] No commented-out code blocks (remove or document why kept)
+- [ ] No placeholder functions that return empty/mock data
+- [ ] No `throw new Error('Not implemented')`
+- [ ] All conditional branches have implementations
+- [ ] All switch cases covered
+- [ ] No empty catch blocks
+- [ ] All async operations properly awaited
+
+**Example of INCOMPLETE code to avoid:**
+```typescript
+// ❌ BAD: Incomplete implementation
+async function processData(data: Data) {
+  // TODO: Add validation
+  // console.log('Processing:', data);
+
+  try {
+    // Implementation pending
+  } catch (error) {
+    // Handle error
+  }
+}
+```
+
+**Example of COMPLETE code:**
+```typescript
+// ✅ GOOD: Complete implementation
+async function processData(data: Data): Promise<ProcessResult> {
+  // Validate input
+  if (!data || !data.id) {
+    throw new ValidationError('Invalid data: missing required fields');
+  }
+
+  try {
+    const result = await supabase
+      .from('data_table')
+      .insert(data)
+      .select()
+      .single();
+
+    if (result.error) {
+      throw new DatabaseError(result.error.message);
+    }
+
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('[processData] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+```
+
+### 8. Component/Feature Testing
+
+**Manual testing checklist:**
+- [ ] New features tested in development mode
+- [ ] All user interactions work as expected
+- [ ] Loading states display correctly
+- [ ] Error states handled gracefully
+- [ ] Success messages appear appropriately
+- [ ] Forms validate inputs correctly
+- [ ] Navigation flows work
+- [ ] Responsive design tested (mobile, tablet, desktop)
+
+### 9. Git Hygiene
+
+```bash
+# Review what's being committed
+git status
+git diff
+
+# Verify commit message is descriptive
+# Format: type: brief description
+# Example: feat: add CoC assessment history panel
+```
+
+**Checklist:**
+- [ ] Only relevant files staged
+- [ ] No accidental `.env` or secret files
+- [ ] No large binary files (except intentional assets)
+- [ ] Commit message follows convention
+- [ ] No merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`)
+- [ ] Branch is up to date with main/master
+
+### 10. Final Verification Command
+
+**Run this complete check before push:**
+```bash
+# Complete pre-push verification
+npm run build && \
+npx tsc --noEmit && \
+npm run lint && \
+npm audit --audit-level=high && \
+echo "✅ All checks passed! Safe to push."
+```
+
+**Expected output:**
+```
+✓ Compiled in X.Xs
+✓ No TypeScript errors
+✓ No ESLint errors
+✓ No high/critical vulnerabilities
+✅ All checks passed! Safe to push.
+```
+
+---
+
+## ⚠️ What To Do If Checks Fail
+
+### Build Failures
+1. Read the error message carefully
+2. Identify the failing file/component
+3. Check for syntax errors, missing imports
+4. Verify all dependencies are installed
+5. Clear `.next` folder and rebuild: `rm -rf .next && npm run build`
+
+### TypeScript Errors
+1. Address errors one by one (don't skip with `@ts-ignore`)
+2. Add proper type definitions
+3. Use type guards for runtime checks
+4. Consult existing type patterns in `src/types/`
+
+### Lint Errors
+1. Run auto-fix: `npm run lint -- --fix`
+2. Review remaining errors
+3. Fix manually or add justification comments
+4. Never disable rules without team discussion
+
+### Dependency Conflicts
+1. Review `package-lock.json` changes
+2. Remove conflicting package: `npm uninstall [package]`
+3. Reinstall: `npm install`
+4. If persistent: delete `node_modules` and `package-lock.json`, then `npm install`
+
+### Incomplete Code
+1. Search for TODO comments: `grep -r "TODO" src/`
+2. Search for console.log: `grep -r "console.log" src/`
+3. Remove or implement before committing
+
+---
+
+## Emergency Bypass (USE SPARINGLY)
+
+**ONLY use if you understand the risks and have a valid reason:**
+
+```bash
+# Skip pre-commit hooks (NOT RECOMMENDED)
+git commit --no-verify
+
+# Force push (NEVER to main/master without approval)
+git push --force
+```
+
+**When emergency bypass is acceptable:**
+- Hotfix for production-breaking issue
+- Documented technical debt with issue ticket
+- Approved by team lead
+
+**When emergency bypass is NOT acceptable:**
+- "I'll fix it later" (fix it now)
+- "It works on my machine" (it must work in production)
+- Skipping tests because they're slow (optimize tests, don't skip)
+
+---
+
 ## Context Preservation
 
 ### Critical Files to Reference
@@ -280,19 +593,30 @@ Before committing AI-generated code, verify:
 When working on specific features, provide AI assistants with context from these files:
 
 #### Design System
-- `src/app/globals.css` - Tailwind configuration and custom CSS
+- `src/app/globals.css` - Tailwind configuration, custom CSS, and animations
 - `tailwind.config.ts` - Theme configuration
 - `.designs/*.html` - UI design mockups
 
 #### Type Definitions
-- `src/types/participant.ts` - Participant data models
-- `src/types/report.ts` - Report data models
-- `src/types/user.ts` - User and permission models
+- `src/types/senior-planner.ts` - Section 34 Auditor and CoC Assessment types
+- Database schema in `supabase/migrations/` - Table structures and RLS policies
 
 #### Core Utilities
+- `src/lib/supabase/client.ts` - Supabase client configuration
+- `src/lib/supabase/server.ts` - Server-side Supabase client
+- `src/lib/pdf-export.ts` - PDF generation utilities
+- `src/lib/pdf-parser.ts` - PDF text extraction utilities
 - `src/lib/utils.ts` - Common utilities
-- `src/lib/validators/` - Input validation schemas
-- `src/lib/db/` - Database client configuration
+
+#### Edge Functions
+- `supabase/functions/_shared/cors.ts` - CORS configuration
+- `supabase/functions/_shared/gemini.ts` - Gemini AI client with tiered fallback
+- `supabase/functions/senior-planner-audit/` - Section 34 Auditor
+- `supabase/functions/coc-eligibility-assessor/` - CoC Assessor
+
+#### Configuration
+- `middleware.ts` - Authentication middleware
+- `.env.local` - Environment variables (NEVER commit this file)
 
 ### Sharing Context with AI
 
@@ -352,18 +676,34 @@ describe('ParticipantCard', () => {
 ### Guidelines for Scalability
 
 ```typescript
-// ✅ GOOD: Optimized database queries
-async function getParticipantsWithReports(userId: string) {
-  return await db.participant.findMany({
-    where: { userId },
-    include: {
-      reports: {
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-      },
-    },
-    take: 50, // Pagination
-  });
+// ✅ GOOD: Optimized Supabase queries with pagination
+async function getReportsWithPagination(page: number = 1, limit: number = 50) {
+  const supabase = createClient();
+  const offset = (page - 1) * limit;
+
+  const { data, error, count } = await supabase
+    .from('report_audits')
+    .select('*, profiles(first_name, last_name)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+
+  return { reports: data, total: count, pages: Math.ceil((count || 0) / limit) };
+}
+
+// ✅ GOOD: Efficient data fetching with RLS
+async function getUserReports() {
+  const supabase = createClient();
+
+  // RLS automatically filters by user
+  const { data, error } = await supabase
+    .from('report_audits')
+    .select('id, document_name, overall_score, status, created_at')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  return data || [];
 }
 
 // ✅ GOOD: Memoization for expensive computations
@@ -371,7 +711,7 @@ const processedData = useMemo(() => {
   return participants.map(p => ({
     ...p,
     fullName: `${p.firstName} ${p.lastName}`,
-    age: calculateAge(p.dateOfBirth),
+    initials: `${p.firstName[0]}.${p.lastName[0]}.`,
   }));
 }, [participants]);
 
@@ -380,6 +720,180 @@ const ReportGenerator = dynamic(() => import('./ReportGenerator'), {
   loading: () => <Skeleton />,
   ssr: false,
 });
+
+// ✅ GOOD: Edge Function optimization with caching
+async function getCachedResult(cacheKey: string) {
+  const supabase = createClient();
+
+  const { data } = await supabase
+    .from('ai_cache')
+    .select('result')
+    .eq('cache_key', cacheKey)
+    .gt('expires_at', new Date().toISOString())
+    .single();
+
+  return data?.result || null;
+}
+```
+
+---
+
+## Supabase-Specific Patterns
+
+### Database Queries
+
+```typescript
+// ✅ GOOD: Proper error handling
+const { data, error } = await supabase
+  .from('table_name')
+  .select('*')
+  .eq('id', id);
+
+if (error) {
+  console.error('Database error:', error);
+  return null;
+}
+
+// ✅ GOOD: Type-safe queries
+interface AuditRecord {
+  id: string;
+  document_name: string;
+  overall_score: number;
+  created_at: string;
+}
+
+const { data } = await supabase
+  .from('report_audits')
+  .select('id, document_name, overall_score, created_at')
+  .returns<AuditRecord[]>();
+
+// ❌ BAD: Ignoring errors
+const { data } = await supabase.from('table').select();
+// What if there was an error?
+```
+
+### Row Level Security (RLS)
+
+```sql
+-- ✅ GOOD: Proper RLS policy
+CREATE POLICY "Users can only access their own reports"
+  ON report_audits FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- ✅ GOOD: Service role bypass for triggers
+CREATE POLICY "Service role can insert profiles"
+  ON profiles FOR INSERT
+  WITH CHECK (true);
+```
+
+### Edge Functions Best Practices
+
+```typescript
+// ✅ GOOD: Proper Edge Function structure
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders } from "../_shared/cors.ts";
+
+Deno.serve(async (req: Request) => {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Parse request
+    const body = await req.json();
+
+    // Validate input
+    if (!body.required_field) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required field' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Process request
+    const result = await processRequest(body);
+
+    return new Response(
+      JSON.stringify({ success: true, data: result }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Error:', error);
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});
+```
+
+### Authentication Patterns
+
+```typescript
+// ✅ GOOD: Client-side auth check
+'use client';
+
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+
+export function ProtectedComponent() {
+  const [user, setUser] = useState(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkAuth();
+  }, []);
+
+  if (!user) return <div>Please sign in</div>;
+
+  return <div>Protected content</div>;
+}
+
+// ✅ GOOD: Server-side auth (middleware)
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export async function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          response.cookies.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  return response;
+}
 ```
 
 ---
