@@ -38,7 +38,7 @@ export default function FCAPipeline() {
           
           {/* Breadcrumb / Progress */}
           <nav className="flex items-center text-sm text-slate-500 dark:text-slate-400 mb-4">
-            <Link href="/toolkit" className="hover:text-indigo-600 transition-colors">Toolkit</Link>
+            <Link href="/toolkit" className="hover:text-indigo-600 transition-colors">Allied Toolkit</Link>
             <ChevronRight className="w-4 h-4 mx-2" />
             <span className="font-semibold text-slate-900 dark:text-white">Session-to-FCA Pipeline</span>
           </nav>
@@ -154,7 +154,7 @@ function ReviewStep({ data, onReset }: { data: FCASessionData, onReset: () => vo
           href="/toolkit"
           className="px-6 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         >
-          Back to Toolkit
+          Back to Allied Toolkit
         </Link>
         <button 
           onClick={onReset}

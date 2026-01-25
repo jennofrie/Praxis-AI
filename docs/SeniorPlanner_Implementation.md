@@ -6,10 +6,14 @@
 - Saves audits/assessments to Supabase tables for history panels; optional RAG upload to Spectra storage with duplicate detection.
 
 ## Frontend Entry Point
-- Page: [src/pages/SeniorPlanner.tsx](src/pages/SeniorPlanner.tsx) (tabs, upload, AI calls, rendering, history panels, dialogs).
-- Permissions: [src/hooks/usePermissions.tsx](src/hooks/usePermissions.tsx) (feature gating; note redirect currently checks `canAccessBudgetForecaster` instead of `canAccessSeniorPlanner`).
-- PDF export: [src/utils/seniorPlannerPdfExport.ts](src/utils/seniorPlannerPdfExport.ts) (jsPDF layout matching UI). CoC PDF uses [src/utils/cocAssessmentPdfExport.ts](src/utils/cocAssessmentPdfExport.ts).
-- RAG upload + duplicate check: [src/lib/ragUpload.ts](src/lib/ragUpload.ts).
+- Page: [src/app/(authenticated)/toolkit/page.tsx](src/app/(authenticated)/toolkit/page.tsx) - Main toolkit page with mode selection
+- Components:
+  - [src/components/toolkit/PlannerMode.tsx](src/components/toolkit/PlannerMode.tsx) - Section 34 Auditor tab (upload, AI calls, rendering, history panels)
+  - [src/components/toolkit/CoCMode.tsx](src/components/toolkit/CoCMode.tsx) - Change of Circumstances Assessor tab
+  - [src/components/toolkit/AIProcessingButton.tsx](src/components/toolkit/AIProcessingButton.tsx) - Animated processing button with stage indicators
+- PDF export: [src/lib/pdf-export.ts](src/lib/pdf-export.ts) - jsPDF generation for both Section 34 and CoC reports
+- PDF parsing: [src/lib/pdf-parser.ts](src/lib/pdf-parser.ts) - Text extraction from uploaded PDFs
+- Type definitions: [src/types/senior-planner.ts](src/types/senior-planner.ts) - TypeScript interfaces for audit and CoC results
 
 ## Section 34 Auditor Flow
 1. **Input**: User selects document type and either pastes text or uploads `.txt/.docx/.pdf` (PDF encoded base64). State: `documentContent`, `fileData`, `fileMimeType`, `documentType`, `documentName`.

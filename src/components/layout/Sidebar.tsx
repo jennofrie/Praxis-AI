@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -17,13 +18,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAIAssistant } from "@/components/providers/AIAssistantContext";
+import { createClient } from "@/lib/supabase/client";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, section: "Clinical Workflow" },
   { name: "Participants", href: "/participants", icon: Users, section: "Clinical Workflow" },
   { name: "Reports & Docs", href: "/reports", icon: FileText, section: "Clinical Workflow" },
   { name: "AI Assistant", href: "#", icon: Bot, section: "Clinical Workflow", badge: "NEW", isAIAssistant: true },
-  { name: "Toolkit", href: "/toolkit", icon: Briefcase, section: "Clinical Workflow" },
+  { name: "Allied Toolkit", href: "/toolkit", icon: Briefcase, section: "Clinical Workflow", badge: "NEW" },
+  { name: "SC Toolkit", href: "/sc-toolkit", icon: Briefcase, section: "Clinical Workflow", badge: "WIP" },
   { name: "Audits", href: "/audits", icon: ShieldCheck, section: "Compliance" },
   { name: "NDIS Plans", href: "/ndis-plans", icon: ScrollText, section: "Compliance" },
   { name: "General", href: "/settings/general", icon: Settings, section: "Settings" },
@@ -33,6 +36,56 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const { isOpen: isAIAssistantOpen, openAssistant } = useAIAssistant();
+
+  const supabase = useMemo(() => createClient(), []);
+  const [displayName, setDisplayName] = useState<string>("Loading...");
+  const [roleTitle, setRoleTitle] = useState<string>("Agent User");
+  const [avatarUrl, setAvatarUrl] = useState<string>("https://ui-avatars.com/api/?name=User&background=random");
+
+  useEffect(() => {
+    const run = async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        setDisplayName("Guest");
+        setRoleTitle("Agent User");
+        setAvatarUrl("https://ui-avatars.com/api/?name=Guest&background=random");
+        return;
+      }
+
+      const user = userData.user;
+      let profile: any = null;
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("full_name, role_title")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        // If the role_title column isn't migrated yet, PostgREST returns 400.
+        if (error && (error as any).status === 400) {
+          const fallback = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .maybeSingle();
+          profile = fallback.data;
+        } else {
+          profile = data;
+        }
+      } catch {
+        profile = null;
+      }
+
+      const nameFromProfile = (profile as any)?.full_name as string | undefined;
+      const nameFromMeta = (user.user_metadata as any)?.full_name as string | undefined;
+      const baseName = nameFromProfile || nameFromMeta || user.email || "User";
+
+      setDisplayName(baseName);
+      setRoleTitle(((profile as any)?.role_title as string) || "Agent User");
+      setAvatarUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(baseName)}&background=random`);
+    };
+    void run();
+  }, [supabase]);
 
   // Group items by section
   const sections = ["Clinical Workflow", "Compliance", "Settings"];
@@ -141,12 +194,11 @@ export function Sidebar() {
       <div className="p-4 border-t border-slate-200 dark:border-slate-800">
         <Link href="/profile" className="flex items-center gap-3 w-full hover:bg-slate-50 dark:hover:bg-slate-800 p-2 rounded-lg transition-colors">
           <div className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 overflow-hidden">
-             {/* Placeholder Avatar */}
-             <img src="https://ui-avatars.com/api/?name=Sarah+Chen&background=random" alt="Sarah Chen" />
+             <img src={avatarUrl} alt={displayName} />
           </div>
           <div className="text-left">
-            <p className="text-sm font-medium text-slate-900 dark:text-white">Sarah Chen</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Senior OT</p>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">{displayName}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{roleTitle}</p>
           </div>
         </Link>
       </div>

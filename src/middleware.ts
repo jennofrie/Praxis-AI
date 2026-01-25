@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
 
   // Public routes (always accessible)
   const publicRoutes = ['/login', '/signup', '/auth'];
-  const isPublicRoute = publicRoutes.some(route => path.startsWith(route));
+  const isPublicRoute = path === '/' || publicRoutes.some(route => path.startsWith(route));
 
   // Admin-only routes (require admin email)
   const adminRoutes = ['/admin', '/settings/users', '/settings/integrations', '/settings/prompts'];
@@ -60,11 +60,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If user IS logged in and trying to access login/signup
-  if (user && isPublicRoute && path !== '/auth/callback') { // Allow callback to proceed
-    // Redirect to dashboard (root)
+  // If user IS logged in and trying to access login/signup (but allow landing page and callback)
+  if (user && isPublicRoute && path !== '/auth/callback' && path !== '/') {
+    // Redirect to dashboard
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }
 

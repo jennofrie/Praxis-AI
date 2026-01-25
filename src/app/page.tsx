@@ -1,24 +1,30 @@
 import Link from "next/link";
-import { 
-  ArrowRight, 
-  PlayCircle, 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  ShieldCheck, 
-  Calendar, 
-  TrendingUp, 
-  Check, 
-  Activity, 
-  Stethoscope, 
-  Heart, 
-  Brain, 
+import { createClient } from "@/lib/supabase/server";
+import {
+  ArrowRight,
+  PlayCircle,
+  LayoutDashboard,
+  Users,
+  FileText,
+  ShieldCheck,
+  Calendar,
+  TrendingUp,
+  Check,
+  Activity,
+  Stethoscope,
+  Heart,
+  Brain,
   Database,
   Mic,
   Gavel
 } from "lucide-react";
+import { AuthButtons } from "@/components/landing/AuthButtons";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Check if user is authenticated
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isAuthenticated = !!user;
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-50 selection:bg-indigo-100 dark:selection:bg-indigo-900/30">
       {/* Navigation */}
@@ -41,15 +47,8 @@ export default function LandingPage() {
               <Link href="#resources" className="text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition-colors">Resources</Link>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="hidden md:block text-slate-600 dark:text-slate-300 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                Sign In
-              </Link>
-              <Link href="/signup" className="px-5 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-all shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 transform hover:-translate-y-0.5">
-                Start Free Trial
-              </Link>
-            </div>
+            {/* CTA Buttons - Auth Aware */}
+            <AuthButtons isAuthenticated={isAuthenticated} />
           </div>
         </div>
       </nav>
@@ -83,10 +82,17 @@ export default function LandingPage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-20">
-            <Link href="/signup" className="w-full sm:w-auto px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg transition-all shadow-xl shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105">
-              Start Free Trial
-              <ArrowRight className="w-5 h-5" />
-            </Link>
+            {isAuthenticated ? (
+              <Link href="/dashboard" className="w-full sm:w-auto px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg transition-all shadow-xl shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105">
+                Go to Dashboard
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            ) : (
+              <Link href="/signup" className="w-full sm:w-auto px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg transition-all shadow-xl shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105">
+                Start Free Trial
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            )}
             <Link href="#" className="w-full sm:w-auto px-8 py-4 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 hover:scale-105">
               <PlayCircle className="w-5 h-5" />
               Watch Demo
@@ -311,17 +317,31 @@ export default function LandingPage() {
       {/* CTA Footer */}
       <div className="py-20 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-900">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">Ready to reclaim your time?</h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400 mb-10">Join 500+ Occupational Therapists using Spectra Praxis to streamline their clinical documentation.</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">
+            {isAuthenticated ? "Welcome back!" : "Ready to reclaim your time?"}
+          </h2>
+          <p className="text-lg text-slate-600 dark:text-slate-400 mb-10">
+            {isAuthenticated
+              ? "Continue where you left off and streamline your clinical documentation."
+              : "Join 500+ Occupational Therapists using Spectra Praxis to streamline their clinical documentation."}
+          </p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Link href="/signup" className="w-full sm:w-auto px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg transition-all shadow-lg shadow-indigo-500/30 hover:-translate-y-1">
-              Start 14-Day Free Trial
-            </Link>
+            {isAuthenticated ? (
+              <Link href="/dashboard" className="w-full sm:w-auto px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg transition-all shadow-lg shadow-indigo-500/30 hover:-translate-y-1">
+                Go to Dashboard
+              </Link>
+            ) : (
+              <Link href="/signup" className="w-full sm:w-auto px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg transition-all shadow-lg shadow-indigo-500/30 hover:-translate-y-1">
+                Start 14-Day Free Trial
+              </Link>
+            )}
             <Link href="#" className="w-full sm:w-auto px-8 py-4 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all hover:-translate-y-1">
               Schedule Demo
             </Link>
           </div>
-          <p className="mt-6 text-sm text-slate-500">No credit card required. HIPAA & GDPR compliant.</p>
+          {!isAuthenticated && (
+            <p className="mt-6 text-sm text-slate-500">No credit card required. HIPAA & GDPR compliant.</p>
+          )}
         </div>
       </div>
 

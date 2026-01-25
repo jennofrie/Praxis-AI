@@ -69,13 +69,13 @@ export default function Toolkit() {
 
   return (
     <>
-      <Header title="Clinical Tools" />
+      <Header title="Allied Toolkit" />
 
       <div className="flex-1 overflow-y-auto p-6 lg:p-8 flex flex-col gap-8 bg-slate-50 dark:bg-slate-950">
         {/* Page Header & Role Toggle */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white md:text-4xl">Toolkit</h1>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white md:text-4xl">Allied Toolkit</h1>
             <p className="text-slate-500 dark:text-slate-400 text-base max-w-2xl">
               Specialized workflows for NDIS documentation, assessment, and compliance.
             </p>

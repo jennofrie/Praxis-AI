@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **AI Processing Button Component** (2026-01-25)
+  - Created reusable `AIProcessingButton` component with professional animations
+  - Stage-based progress indicators showing real-time processing steps
+  - Visual effects: gradient glow, shimmer animation, floating particles, progress bar
+  - Two variants: Emerald (for Section 34 Audit) and Indigo (for CoC Assessment)
+  - Different stage messages for audit vs. assessment workflows
+  - Custom CSS keyframe animations: shimmer, float, pulse-ring, spin-slow
+
+- **Enhanced Reports & Docs Page** (2026-01-25)
+  - Real-time data fetching from `report_audits` and `coc_assessments` Supabase tables
+  - Participant name extraction from document names with intelligent parsing
+  - Participant initials display format (e.g., "J.D." instead of full names or photos)
+  - Renamed "AI Confidence" to "Spectra Confidence" across UI
+  - "Final" status badge for completed Planner and CoC assessments
+  - Tab-based filtering: All Reports, Section 34 Audits, CoC Assessments
+  - Report Summary widget showing counts by type
+  - Recent Activity widget with time-ago formatting
+  - Search functionality across participant names and document names
+  - Color-coded status indicators: Final (green), Review (yellow), Critical (red), Blocked (gray)
+
 - **FCA Pipeline Intake Enhancement** (2026-01-25)
   - Extended `FCASessionData` interface with comprehensive intake fields
   - Added `sessionDate`, `sessionTime`, `clinicianName`, `sessionType`, `location` fields
@@ -20,6 +40,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prepared foundation for Supabase storage integration
 
 ### Changed
+- **Planner Mode (Section 34 Auditor)**
+  - Replaced standard button with animated `AIProcessingButton`
+  - Shows 5 processing stages: Scanning → Analyzing Section 34 → Evaluating evidence → 3-pass analysis → Generating report
+  - Improved user feedback during AI processing with visual progress
+
+- **CoC Mode (Change of Circumstances Assessor)**
+  - Replaced standard button with animated `AIProcessingButton`
+  - Shows 5 processing stages: Processing circumstances → Analyzing triggers → Evaluating eligibility → Determining pathway → Generating reports
+  - Enhanced UX with professional animations and progress tracking
+
 - **Domain Mapper Component**
   - Added `initialNotes` and `autoAnalyze` props for seamless workflow
   - Auto-triggers domain mapping when notes are provided from intake
@@ -35,6 +65,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added null coalescing operators for type safety
   - Fixed string | undefined type issues
   - Excluded Supabase edge functions from TypeScript checking
+- AIProcessingButton TypeScript strict null checks
+  - Added bounds checking for stage array access
+  - Added non-null assertions for safe array element access
 
 ### Planned Features
 - Session Intake form expansion with NDIS best practices

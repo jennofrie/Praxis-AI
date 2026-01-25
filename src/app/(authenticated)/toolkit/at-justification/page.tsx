@@ -250,7 +250,7 @@ Based on the comprehensive comparison, **${recommended.name}** is recommended as
           
           {/* Breadcrumb */}
           <nav className="flex items-center text-sm text-slate-500 dark:text-slate-400">
-            <Link href="/toolkit" className="hover:text-indigo-600 transition-colors">Toolkit</Link>
+            <Link href="/toolkit" className="hover:text-indigo-600 transition-colors">Allied Toolkit</Link>
             <ChevronRight className="w-4 h-4 mx-2" />
             <span className="font-semibold text-slate-900 dark:text-white">AT Justification Assistant</span>
           </nav>

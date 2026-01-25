@@ -1,9 +1,135 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { BadgeCheck, Edit, Mail, Phone, Briefcase, MapPin, ShieldCheck, CheckCircle, TrendingUp, History, Calendar, Settings, Users } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+type SaveState = "idle" | "saving" | "saved" | "error";
 
 export default function Profile() {
+  const supabase = useMemo(() => createClient(), []);
+
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  const [userId, setUserId] = useState<string | null>(null);
+  const [email, setEmail] = useState<string>("");
+  const [fullName, setFullName] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [roleTitle, setRoleTitle] = useState<string>("Agent User");
+
+  const [avatarUrl, setAvatarUrl] = useState<string>("https://ui-avatars.com/api/?name=User&background=random");
+
+  useEffect(() => {
+    const run = async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        setError("Please log in to view your profile.");
+        return;
+      }
+
+      const user = userData.user;
+      setUserId(user.id);
+      setEmail(user.email ?? "");
+
+      let profile: any = null;
+      try {
+        const { data: p, error: profileError } = await supabase
+          .from("profiles")
+          .select("full_name, phone, role_title")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        // If new columns aren't migrated yet, PostgREST returns 400.
+        if (profileError && (profileError as any).status === 400) {
+          const fallback = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .maybeSingle();
+          profile = fallback.data;
+        } else if (profileError) {
+          setError(profileError.message);
+          return;
+        } else {
+          profile = p;
+        }
+      } catch (e) {
+        console.warn("Failed to load profile:", e);
+      }
+
+      const nameFromProfile = (profile as any)?.full_name as string | undefined;
+      const nameFromMeta = (user.user_metadata as any)?.full_name as string | undefined;
+      const resolvedName = nameFromProfile || nameFromMeta || "";
+
+      setFullName(resolvedName);
+      setPhone(((profile as any)?.phone as string) || "");
+      setRoleTitle(((profile as any)?.role_title as string) || "Agent User");
+      setAvatarUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(resolvedName || user.email || "User")}&background=random`);
+    };
+
+    void run();
+  }, [supabase]);
+
+  const handleSave = async () => {
+    if (!userId) return;
+    setError(null);
+    setSaveState("saving");
+
+    try {
+      // Update auth user (email + metadata)
+      const { data: userData } = await supabase.auth.getUser();
+      const currentEmail = userData.user?.email ?? "";
+      const emailChanged = email.trim() && currentEmail && email.trim() !== currentEmail;
+
+      if (emailChanged) {
+        const { error: emailError } = await supabase.auth.updateUser({ email: email.trim() });
+        if (emailError) throw emailError;
+      }
+
+      const { error: metaError } = await supabase.auth.updateUser({
+        data: {
+          full_name: fullName.trim(),
+        },
+      });
+      if (metaError) throw metaError;
+
+      // Update profile row
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          full_name: fullName.trim() || null,
+          phone: phone.trim() || null,
+          role_title: roleTitle.trim() || "Agent User",
+          email: email.trim(),
+        })
+        .eq("id", userId);
+
+      if (profileError) {
+        // If the DB hasn't been migrated with new columns yet, PostgREST returns 400.
+        if ((profileError as any).status === 400) {
+          const { error: fallbackError } = await supabase
+            .from("profiles")
+            .update({
+              full_name: fullName.trim() || null,
+              email: email.trim(),
+            })
+            .eq("id", userId);
+          if (fallbackError) throw fallbackError;
+        } else {
+          throw profileError;
+        }
+      }
+
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 1500);
+    } catch (e) {
+      setSaveState("error");
+      setError(e instanceof Error ? e.message : "Failed to save profile");
+    }
+  };
+
   return (
     <>
       <Header title="User Profile" />
@@ -16,15 +142,15 @@ export default function Profile() {
               <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
                 <div className="relative">
                   <div className="bg-slate-200 rounded-full h-24 w-24 border-4 border-white dark:border-slate-900 shadow-md overflow-hidden">
-                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPwFPtrSRqhMnDIEBpqckVKDTVhpSFcpE75Ltp-hVekg955bov_EXHlH1WS83R9ObRAkX0vUxdCjv9mH-fD5BaHjUoZgPZwgyd0YFTt8XHqvVceU0Cnpy2IrTvlF6D5N7uiPoDJfMGQQsdzk1n2u2OYfdwQKCzYDj1xBXJf-zdLKaPXCGYE-RAj1y66plrbKAzfAjcU-SSsZVEAUtQbjcSZt4zLrWIC38oMyNgKUjqlBpyZsDbDLzUc5RxmDAhExPUqWdALPNvfk8" alt="Profile" className="w-full h-full object-cover" />
+                    <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                   </div>
                   <div className="absolute bottom-1 right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900" title="Active"></div>
                 </div>
                 <div className="flex flex-col justify-center space-y-1">
-                  <h1 className="text-slate-900 dark:text-white text-3xl font-bold leading-tight tracking-tight">Sarah Chen</h1>
+                  <h1 className="text-slate-900 dark:text-white text-3xl font-bold leading-tight tracking-tight">{fullName || "Your Profile"}</h1>
                   <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-medium text-lg">
                     <Briefcase className="w-5 h-5" />
-                    <span>Senior Occupational Therapist</span>
+                    <span>{roleTitle || "Agent User"}</span>
                   </div>
                   <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-1 justify-center sm:justify-start">
                     <MapPin className="w-4 h-4" />
@@ -32,11 +158,21 @@ export default function Profile() {
                   </p>
                 </div>
               </div>
-              <button className="w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+              <button
+                onClick={handleSave}
+                disabled={saveState === "saving" || !userId}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+              >
                 <Edit className="w-4 h-4" />
-                <span>Edit Profile</span>
+                <span>{saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved" : "Save Profile"}</span>
               </button>
             </div>
+
+            {error ? (
+              <div className="mt-4 p-3 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-sm">
+                {error}
+              </div>
+            ) : null}
           </div>
 
           {/* Navigation Tabs */}
@@ -62,10 +198,10 @@ export default function Profile() {
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <InputGroup label="Full Name" value="Sarah Chen" icon={<Users className="w-5 h-5 text-slate-400" />} />
-                  <InputGroup label="Email Address" value="sarah.chen@quantum.health" icon={<Mail className="w-5 h-5 text-slate-400" />} />
-                  <InputGroup label="Phone Number" value="+61 400 000 000" icon={<Phone className="w-5 h-5 text-slate-400" />} />
-                  <InputGroup label="Role Title" value="Senior Occupational Therapist" icon={<Briefcase className="w-5 h-5 text-slate-400" />} disabled />
+                  <InputGroup label="Full Name" value={fullName} onChange={setFullName} icon={<Users className="w-5 h-5 text-slate-400" />} />
+                  <InputGroup label="Email Address" value={email} onChange={setEmail} icon={<Mail className="w-5 h-5 text-slate-400" />} />
+                  <InputGroup label="Phone Number" value={phone} onChange={setPhone} icon={<Phone className="w-5 h-5 text-slate-400" />} />
+                  <InputGroup label="Role Title" value={roleTitle} onChange={setRoleTitle} icon={<Briefcase className="w-5 h-5 text-slate-400" />} />
                 </div>
               </div>
 
@@ -171,7 +307,7 @@ function TabLink({ active, children, icon: Icon }: any) {
   );
 }
 
-function InputGroup({ label, value, icon, disabled }: any) {
+function InputGroup({ label, value, icon, disabled, onChange }: any) {
   return (
     <label className="block space-y-1">
       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>
@@ -184,7 +320,8 @@ function InputGroup({ label, value, icon, disabled }: any) {
         <input 
           className={`block w-full h-11 rounded-lg border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm ${icon ? "pl-10" : "pl-3"}`} 
           type="text" 
-          defaultValue={value}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
           disabled={disabled}
         />
       </div>

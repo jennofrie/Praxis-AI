@@ -1,0 +1,46 @@
+feat: add AI processing animations and enhance Reports page
+
+### AI Processing Button Component
+- Create reusable AIProcessingButton component with professional animations
+- Add stage-based progress indicators showing real-time AI processing steps
+- Implement visual effects: gradient glow, shimmer, floating particles, progress bar
+- Support two color variants: Emerald (Section 34 Audit) and Indigo (CoC Assessment)
+- Add different stage messages for audit vs. assessment workflows:
+  * Audit: Scanning → Analyzing Section 34 → Evaluating evidence → 3-pass analysis → Generating report
+  * CoC: Processing circumstances → Analyzing triggers → Evaluating eligibility → Determining pathway → Generating reports
+
+### Reports & Docs Page Enhancement
+- Rewrite Reports page to fetch real data from report_audits and coc_assessments tables
+- Implement participant name extraction from document names with intelligent parsing
+- Add participant initials display format (e.g., "J.D." instead of full names/photos)
+- Rename "AI Confidence" to "Spectra Confidence" across UI
+- Add "Final" status badge for completed Planner and CoC assessments
+- Implement tab-based filtering: All Reports, Section 34 Audits, CoC Assessments
+- Add Report Summary widget showing counts by type
+- Add Recent Activity widget with time-ago formatting
+- Implement search functionality across participant names and document names
+- Add color-coded status indicators: Final (green), Review (yellow), Critical (red), Blocked (gray)
+
+### Component Updates
+- Update PlannerMode to use animated AIProcessingButton
+- Update CoCMode to use animated AIProcessingButton
+- Improve user feedback during AI processing with visual progress
+
+### Styling & Animations
+- Add custom CSS keyframe animations in globals.css:
+  * shimmer: horizontal sweep animation
+  * float: particle floating effect
+  * pulse-ring: pulsing glow animation
+  * spin-slow: slow rotation animation
+
+### Documentation
+- Update CHANGELOG.md with all new features and changes
+- Update SeniorPlanner_Implementation.md with current file structure
+- Add AI Processing Button documentation section
+- Update key files references to reflect current architecture
+
+### Technical Improvements
+- Add TypeScript null-safety checks for array access in AIProcessingButton
+- Add bounds checking for stage array access
+- Implement proper error handling for Supabase data fetching
+

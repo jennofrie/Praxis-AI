@@ -2,12 +2,23 @@
  * CoC Eligibility Assessor Edge Function
  * AI-powered Change of Circumstances eligibility assessment
  *
+ * Features:
+ * - Tiered model usage: Premium (Gemini 2.5 Pro) for first N uses per user per 24h
+ * - Regular users: 2 Pro uses per 24h
+ * - Admin users: 10 Pro uses per 24h
+ * - Automatic fallback to Standard tier (Gemini 2.0 Flash) after limit reached
+ *
  * POST - Assess if circumstances qualify for NDIS plan reassessment
  */
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
-import { GeminiClient, SYSTEM_PROMPTS, AIProvider } from "../_shared/gemini.ts";
+import { GeminiClient, SYSTEM_PROMPTS, AIProvider, ModelTier } from "../_shared/gemini.ts";
+
+// Constants
+const MAX_PRO_USES_PER_DAY = 2;
+const MAX_PRO_USES_PER_DAY_ADMIN = 10;
 
 // CoC Trigger Categories
 type CoCTriggerCategory =
@@ -39,6 +50,7 @@ interface CoCAssessmentRequest {
   content?: string;            // Additional text evidence
   fileData?: string;           // Base64 encoded PDF
   fileMimeType?: string;
+  userId?: string;             // Optional: passed from API route for tiered usage
   // AI Provider settings
   provider?: AIProvider;
   enableFallback?: boolean;
@@ -85,6 +97,80 @@ const gemini = new GeminiClient();
 // Minimum content length
 const MIN_CONTENT_LENGTH = 50;
 
+// Check if user is an admin
+async function checkIsAdmin(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (error || !data) {
+      console.log('[Admin Check] Could not verify admin status:', error?.message);
+      return false;
+    }
+
+    const isAdmin = data.role === 'admin';
+    console.log(`[Admin Check] User ${userId.slice(0, 8)}... | Role: ${data.role} | IsAdmin: ${isAdmin}`);
+    return isAdmin;
+  } catch (error) {
+    console.error('[Admin Check] Exception:', error);
+    return false;
+  }
+}
+
+// Check and update Pro usage count for CoC assessments
+async function checkProUsage(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  maxLimit: number
+): Promise<{ canUsePro: boolean; currentCount: number }> {
+  try {
+    // Use the database function to check and reset if needed
+    // Using 'coc_assessment' as the document type for CoC-specific tracking
+    const { data, error } = await supabase.rpc('check_and_reset_pro_usage', {
+      p_user_id: userId,
+      p_document_type: 'coc_assessment',
+    });
+
+    if (error) {
+      console.error('[Usage] Error checking usage:', error);
+      // Default to allowing Pro on error (better UX)
+      return { canUsePro: true, currentCount: 0 };
+    }
+
+    const currentCount = data?.[0]?.current_count ?? 0;
+    const canUsePro = currentCount < maxLimit;
+
+    console.log(`[Usage] User ${userId.slice(0, 8)}... | DocType: coc_assessment | Count: ${currentCount}/${maxLimit} | CanUsePro: ${canUsePro}`);
+
+    return { canUsePro, currentCount };
+  } catch (error) {
+    console.error('[Usage] Exception:', error);
+    return { canUsePro: true, currentCount: 0 };
+  }
+}
+
+// Increment Pro usage count
+async function incrementProUsage(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<void> {
+  try {
+    await supabase.rpc('increment_pro_usage', {
+      p_user_id: userId,
+      p_document_type: 'coc_assessment',
+    });
+    console.log('[Usage] Incremented Pro usage for user');
+  } catch (error) {
+    console.error('[Usage] Failed to increment:', error);
+  }
+}
+
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -94,9 +180,26 @@ Deno.serve(async (req: Request) => {
   const startTime = Date.now();
 
   try {
+    // Initialize Supabase client with service role
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     const body: CoCAssessmentRequest = await req.json();
     console.log('[CoC Assessor] Processing request...');
     console.log('[CoC Assessor] Triggers:', body.triggers?.length || 0);
+
+    // Get user ID from body or auth header
+    let userId = body.userId;
+    if (!userId) {
+      // Try to get from auth header
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.slice(7);
+        const { data: { user } } = await supabase.auth.getUser(token);
+        userId = user?.id;
+      }
+    }
 
     // Get provider settings
     const preferredProvider: AIProvider = body.provider || 'gemini';
@@ -149,54 +252,38 @@ Please assess whether these circumstances qualify for an NDIS unscheduled plan r
 Provide both a Support Coordinator report and a Participant-friendly report.
 `;
 
+    // Determine which model tier to use based on user's usage and admin status
+    let usePremium = false;
+    if (userId) {
+      // Check if user is admin (gets 10 Pro uses vs 2 for regular users)
+      const isAdmin = await checkIsAdmin(supabase, userId);
+      const maxLimit = isAdmin ? MAX_PRO_USES_PER_DAY_ADMIN : MAX_PRO_USES_PER_DAY;
+
+      const { canUsePro } = await checkProUsage(supabase, userId, maxLimit);
+      usePremium = canUsePro;
+    }
+
+    console.log('[CoC Assessor] Using tier:', usePremium ? 'PREMIUM (Gemini 2.5 Pro)' : 'STANDARD (Gemini 2.0 Flash)');
     console.log('[CoC Assessor] Analyzing circumstances...');
-    const result = await gemini.generate<CoCAssessmentResult>(
+
+    const result = await gemini.generateWithTieredFallback<CoCAssessmentResult>(
       prompt,
       SYSTEM_PROMPTS.cocEligibilityAssessor,
-      'pro',
-      true,
-      preferredProvider
+      usePremium,
+      true
     );
 
     if (!result.success) {
       console.error('[CoC Assessor] Analysis failed:', result.error);
-
-      // Try fallback if enabled
-      if (enableFallback) {
-        const fallbackProvider: AIProvider = preferredProvider === 'gemini' ? 'ollama' : 'gemini';
-        console.log('[CoC Assessor] Attempting fallback to:', fallbackProvider);
-
-        const fallbackResult = await gemini.generate<CoCAssessmentResult>(
-          prompt,
-          SYSTEM_PROMPTS.cocEligibilityAssessor,
-          'pro',
-          true,
-          fallbackProvider
-        );
-
-        if (fallbackResult.success) {
-          const processingTime = Date.now() - startTime;
-          console.log('[CoC Assessor] Fallback successful');
-
-          return new Response(
-            JSON.stringify({
-              success: true,
-              data: {
-                ...fallbackResult.data,
-                processingTime,
-              },
-              model: fallbackResult.model,
-              provider: fallbackResult.provider,
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-      }
-
       return new Response(
         JSON.stringify({ error: result.error || 'Failed to assess circumstances' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Increment Pro usage if we used premium tier
+    if (userId && result.tierUsed === 'premium') {
+      await incrementProUsage(supabase, userId);
     }
 
     const data = result.data as CoCAssessmentResult;
@@ -235,6 +322,7 @@ Provide both a Support Coordinator report and a Participant-friendly report.
     }
 
     console.log('[CoC Assessor] Assessment successful');
+    console.log('[CoC Assessor] Tier used:', result.tierUsed);
     console.log('[CoC Assessor] Verdict:', sanitizedData.eligibilityVerdict);
     console.log('[CoC Assessor] Pathway:', sanitizedData.recommendedPathway);
     console.log('[CoC Assessor] Confidence:', sanitizedData.confidenceScore);
@@ -248,7 +336,8 @@ Provide both a Support Coordinator report and a Participant-friendly report.
           processingTime,
         },
         model: result.model,
-        provider: result.provider,
+        tier: result.tierUsed,
+        provider: 'gemini',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -5,8 +5,13 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Browser client for Client Components (handles cookies)
+let browserClient: ReturnType<typeof createSSRBrowserClient> | null = null;
+
 export function createBrowserClient() {
-  return createSSRBrowserClient(supabaseUrl, supabaseAnonKey);
+  if (!browserClient) {
+    browserClient = createSSRBrowserClient(supabaseUrl, supabaseAnonKey);
+  }
+  return browserClient;
 }
 
 // Legacy client (LocalStorage) - kept for backward compatibility if needed, but discouraged
@@ -17,8 +22,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export function createServiceRoleClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceRoleKey) {
-    console.warn('SUPABASE_SERVICE_ROLE_KEY not set, using anon key');
-    return supabase;
+    throw new Error(
+      'SUPABASE_SERVICE_ROLE_KEY is not set. ' +
+      'Add it to .env.local and restart your dev server with: npm run dev'
+    );
   }
   return createClient(supabaseUrl, serviceRoleKey);
 }
@@ -28,7 +35,9 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
+  phone?: string | null;
   role: 'clinician' | 'planner' | 'admin';
+  role_title?: string | null;
   organization: string | null;
   preferences: {
     theme: 'light' | 'dark' | 'system';

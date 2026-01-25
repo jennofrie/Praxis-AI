@@ -9,15 +9,25 @@ import { GoogleGenerativeAI, GenerativeModel, GenerationConfig } from "npm:@goog
 // AI Provider types
 export type AIProvider = 'gemini' | 'ollama';
 
-// Model configurations for Gemini (using Gemini 2.5 Flash)
+// Model tier types (Premium = Pro model, Standard = Flash model)
+export type ModelTier = 'premium' | 'standard';
+
+// Model configurations for Gemini
 const GEMINI_CONFIGS = {
+  // Premium tier: Gemini 2.5 Pro (limited usage - 2 per user per document type per 24h)
+  premium: {
+    model: 'gemini-2.5-pro-preview-05-06',  // Gemini 2.5 Pro Preview
+    temperature: 0.3,
+    maxOutputTokens: 8192,
+  },
+  // Standard tier: Gemini 2.0 Flash (unlimited usage)
   pro: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.0-flash-exp',  // Gemini 2.0 Flash
     temperature: 0.3,
     maxOutputTokens: 4096,
   },
   flash: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.0-flash-exp',  // Gemini 2.0 Flash
     temperature: 0.2,
     maxOutputTokens: 2048,
   },
@@ -287,6 +297,90 @@ export class GeminiClient {
   // Check if Gemini is configured
   isGeminiConfigured(): boolean {
     return !!Deno.env.get('GEMINI_API_KEY');
+  }
+
+  // Generate with specific model tier (premium = Pro, standard = Flash)
+  async generateWithTier<T = string>(
+    prompt: string,
+    systemPrompt: string,
+    tier: ModelTier,
+    parseAsJson: boolean = false
+  ): Promise<AIResponse<T>> {
+    try {
+      const client = this.initializeGemini();
+      const config = tier === 'premium' ? GEMINI_CONFIGS.premium : GEMINI_CONFIGS.pro;
+
+      console.log(`[Gemini] Using ${tier} tier with model: ${config.model}`);
+
+      const model = client.getGenerativeModel({ model: config.model });
+      const generationConfig: GenerationConfig = {
+        temperature: config.temperature,
+        maxOutputTokens: config.maxOutputTokens,
+        topP: 0.95,
+        topK: 40,
+      };
+
+      const fullPrompt = `${BASE_PERSONA}\n\n${systemPrompt}\n\n---\n\nUser Input:\n${prompt}`;
+
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+        generationConfig,
+      });
+
+      const response = result.response;
+      const text = response.text();
+
+      if (parseAsJson) {
+        // Extract JSON from response (handle markdown code blocks)
+        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, text];
+        const jsonString = jsonMatch[1] || text;
+
+        try {
+          const parsed = JSON.parse(jsonString.trim()) as T;
+          return { success: true, data: parsed, model: config.model, provider: 'gemini' };
+        } catch {
+          // Try to find JSON object or array in the response
+          const objectMatch = jsonString.match(/\{[\s\S]*\}/) || jsonString.match(/\[[\s\S]*\]/);
+          if (objectMatch) {
+            const parsed = JSON.parse(objectMatch[0]) as T;
+            return { success: true, data: parsed, model: config.model, provider: 'gemini' };
+          }
+          throw new Error('Failed to parse JSON response');
+        }
+      }
+
+      return { success: true, data: text as T, model: config.model, provider: 'gemini' };
+    } catch (error) {
+      console.error(`[Gemini ${tier}] API error:`, error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        provider: 'gemini',
+      };
+    }
+  }
+
+  // Generate with tiered fallback (premium -> standard on failure)
+  async generateWithTieredFallback<T = string>(
+    prompt: string,
+    systemPrompt: string,
+    usePremium: boolean,
+    parseAsJson: boolean = false
+  ): Promise<AIResponse<T> & { tierUsed: ModelTier }> {
+    if (usePremium) {
+      console.log('[Gemini] Attempting premium tier (Gemini 2.5 Pro)...');
+      const premiumResult = await this.generateWithTier<T>(prompt, systemPrompt, 'premium', parseAsJson);
+
+      if (premiumResult.success) {
+        return { ...premiumResult, tierUsed: 'premium' };
+      }
+
+      console.warn('[Gemini] Premium tier failed, falling back to standard...');
+    }
+
+    // Use standard tier
+    const standardResult = await this.generateWithTier<T>(prompt, systemPrompt, 'standard', parseAsJson);
+    return { ...standardResult, tierUsed: 'standard' };
   }
 }
 

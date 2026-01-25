@@ -1,17 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
-import { Badge, ChevronRight, Server, Database, Brain, Sun, Moon, Cloud, HardDrive, RefreshCw, CheckCircle, XCircle, Loader2, Shield, FileText, Lock, Users, AlertTriangle, Plus, X, Sparkles } from "lucide-react";
+import { Badge, ChevronRight, Server, Database, Brain, Sun, Moon, Cloud, HardDrive, RefreshCw, CheckCircle, XCircle, Loader2, Shield, FileText, Lock, Users, AlertTriangle, Plus, X, Sparkles, LogOut, User } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { useAIProvider } from "@/components/providers/AIProviderContext";
 import { useAdmin } from "@/components/providers/AdminContext";
+import { createBrowserClient } from "@/lib/supabase";
 
 export default function GeneralSettings() {
+  const router = useRouter();
+  const supabase = createBrowserClient();
   const { theme, setTheme } = useTheme();
   const { provider, setProvider, enableFallback, setEnableFallback, ollamaStatus, checkOllamaStatus } = useAIProvider();
   const { isAdmin, isLoading, user } = useAdmin();
   const [activePromptTab, setActivePromptTab] = useState<string>("fca-pipeline");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await supabase.auth.signOut();
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Error logging out:", error);
+      setIsLoggingOut(false);
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -495,6 +512,53 @@ export default function GeneralSettings() {
                   <QuickLink>View Invoices</QuickLink>
                   <QuickLink>Contact Support</QuickLink>
                   {isAdmin && <QuickLink>View Logs</QuickLink>}
+                </div>
+              </div>
+
+              {/* Card: Account */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Account</h3>
+                </div>
+                <div className="p-6 space-y-4">
+                  {/* User Info */}
+                  {user && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                        <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                          {user.email}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {isAdmin ? "Administrator" : "Member"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Logout Button */}
+                  <button
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoggingOut ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Logging out...
+                      </>
+                    ) : (
+                      <>
+                        <LogOut className="w-4 h-4" />
+                        Log Out
+                      </>
+                    )}
+                  </button>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+                    You will be redirected to the landing page.
+                  </p>
                 </div>
               </div>
             </div>
