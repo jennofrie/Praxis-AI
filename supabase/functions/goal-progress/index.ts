@@ -7,7 +7,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { GeminiClient, SYSTEM_PROMPTS } from "../_shared/gemini.ts";
+import { GeminiClient, SYSTEM_PROMPTS, AIProvider } from "../_shared/gemini.ts";
 
 interface Session {
   date: string;
@@ -24,6 +24,9 @@ interface GoalProgressRequest {
     target?: string;
   };
   sessions: Session[];
+  // AI Provider settings
+  provider?: AIProvider;
+  enableFallback?: boolean;
 }
 
 interface GoalProgressResult {
@@ -53,6 +56,11 @@ Deno.serve(async (req: Request) => {
   try {
     const body: GoalProgressRequest = await req.json();
     console.log('[Goal Progress] Processing request...');
+
+    // Get provider settings from request
+    const preferredProvider: AIProvider = body.provider || 'gemini';
+    const enableFallback = body.enableFallback !== false;
+    console.log('[Goal Progress] Provider:', preferredProvider, '| Fallback:', enableFallback);
 
     if (!body.goal || !body.sessions || body.sessions.length === 0) {
       return new Response(
@@ -93,11 +101,13 @@ ${s.indicators ? `**Indicators:** ${s.indicators.join(', ')}` : ''}
 `;
 
     console.log('[Goal Progress] Analyzing sessions...');
-    const result = await gemini.generate<GoalProgressResult>(
+    const result = await gemini.generateWithProviderFallback<GoalProgressResult>(
       contextPrompt,
       SYSTEM_PROMPTS.goalProgress,
       'pro',
-      true
+      true,
+      preferredProvider,
+      enableFallback
     );
 
     if (!result.success) {
@@ -154,6 +164,7 @@ ${s.indicators ? `**Indicators:** ${s.indicators.join(', ')}` : ''}
           },
         },
         model: result.model,
+        provider: result.provider,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

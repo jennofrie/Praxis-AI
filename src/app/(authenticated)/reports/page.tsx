@@ -1,7 +1,7 @@
 "use client";
 
 import { Header } from "@/components/layout/Header";
-import { Search, Plus, Filter, Download, FileText, CheckCircle, Clock, AlertTriangle, File, Calendar, MoreHorizontal, Upload, FileDown, List, Smartphone, Home } from "lucide-react";
+import { Search, Plus, FileText, CheckCircle, Clock, Calendar, Upload, FileDown, List, Smartphone, Home } from "lucide-react";
 
 export default function Reports() {
   return (
@@ -199,7 +199,7 @@ export default function Reports() {
   );
 }
 
-function MetricCard({ title, value, badge, badgeColor, icon: Icon, color }: any) {
+function MetricCard({ title, value, badge, badgeColor, icon: Icon }: any) {
   const badgeColors: Record<string, string> = {
     green: "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400",
     orange: "text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400",

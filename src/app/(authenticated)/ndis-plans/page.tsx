@@ -1,7 +1,7 @@
 "use client";
 
 import { Header } from "@/components/layout/Header";
-import { Search, Plus, Filter, SortAsc, FolderOpen, AlertTriangle, DollarSign, BarChart2, TrendingUp, MoreHorizontal, ArrowRight, TrendingDown, Bell, Mail, FileText, Edit, Folder } from "lucide-react";
+import { Search, Plus, Filter, SortAsc, FolderOpen, AlertTriangle, DollarSign, BarChart2, TrendingUp, MoreHorizontal, ArrowRight, TrendingDown, Bell, Mail, FileText, Edit } from "lucide-react";
 
 export default function NDISPlans() {
   return (

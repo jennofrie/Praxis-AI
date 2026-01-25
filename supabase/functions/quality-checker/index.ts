@@ -7,11 +7,14 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { GeminiClient, SYSTEM_PROMPTS } from "../_shared/gemini.ts";
+import { GeminiClient, SYSTEM_PROMPTS, AIProvider } from "../_shared/gemini.ts";
 
 interface QualityCheckerRequest {
   content: string;
   reportType?: 'fca' | 'at-justification' | 'progress-note' | 'other';
+  // AI Provider settings
+  provider?: AIProvider;
+  enableFallback?: boolean;
 }
 
 interface QualityIssue {
@@ -43,6 +46,11 @@ Deno.serve(async (req: Request) => {
     console.log('[Quality Checker] Processing request...');
     console.log('[Quality Checker] Report type:', body.reportType || 'general');
 
+    // Get provider settings from request
+    const preferredProvider: AIProvider = body.provider || 'gemini';
+    const enableFallback = body.enableFallback !== false;
+    console.log('[Quality Checker] Provider:', preferredProvider, '| Fallback:', enableFallback);
+
     if (!body.content) {
       return new Response(
         JSON.stringify({ error: 'Report content is required' }),
@@ -58,11 +66,13 @@ ${body.content}
 `;
 
     console.log('[Quality Checker] Analyzing content...');
-    const result = await gemini.generate<QualityResult>(
+    const result = await gemini.generateWithProviderFallback<QualityResult>(
       prompt,
       SYSTEM_PROMPTS.qualityChecker,
       'pro',
-      true
+      true,
+      preferredProvider,
+      enableFallback
     );
 
     if (!result.success) {
@@ -102,6 +112,7 @@ ${body.content}
           readyForSubmission: qualityScore >= passThreshold && issuesBySeverity.error.length === 0,
         },
         model: result.model,
+        provider: result.provider,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

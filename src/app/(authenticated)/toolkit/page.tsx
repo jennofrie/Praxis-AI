@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
-import { 
-  Briefcase, 
-  Smartphone, 
-  PenTool, 
-  LayoutGrid, 
+import {
+  Smartphone,
+  PenTool,
+  LayoutGrid,
   History,
   ShieldCheck,
   Brain,
@@ -16,10 +15,16 @@ import {
   ChevronRight,
   LucideIcon,
   FileText,
-  CheckCircle
+  CheckCircle,
+  RefreshCcw,
+  ClipboardCheck,
 } from "lucide-react";
 
 import Link from "next/link";
+import { PlannerMode } from "@/components/toolkit/PlannerMode";
+import { CoCMode } from "@/components/toolkit/CoCMode";
+
+type ToolkitModeType = "clinician" | "planner" | "coc";
 
 interface QuickActionProps {
   icon: LucideIcon;
@@ -60,12 +65,12 @@ interface ActivityItemProps {
 }
 
 export default function Toolkit() {
-  const [userRole, setUserRole] = useState<"OT" | "Planner">("OT");
+  const [mode, setMode] = useState<ToolkitModeType>("clinician");
 
   return (
     <>
       <Header title="Clinical Tools" />
-      
+
       <div className="flex-1 overflow-y-auto p-6 lg:p-8 flex flex-col gap-8 bg-slate-50 dark:bg-slate-950">
         {/* Page Header & Role Toggle */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -75,44 +80,60 @@ export default function Toolkit() {
               Specialized workflows for NDIS documentation, assessment, and compliance.
             </p>
           </div>
-          
+
+          {/* 3-Way Mode Toggle */}
           <div className="flex items-center p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <button 
-              onClick={() => setUserRole("OT")}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                userRole === "OT" 
-                  ? "bg-indigo-600 text-white shadow-md" 
+            <button
+              onClick={() => setMode("clinician")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                mode === "clinician"
+                  ? "bg-indigo-600 text-white shadow-md"
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              Clinician Mode
+              <Brain className="w-4 h-4" />
+              Clinician
             </button>
-            <button 
-              onClick={() => setUserRole("Planner")}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                userRole === "Planner" 
-                  ? "bg-emerald-600 text-white shadow-md" 
+            <button
+              onClick={() => setMode("planner")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                mode === "planner"
+                  ? "bg-emerald-600 text-white shadow-md"
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              Planner Mode
+              <ClipboardCheck className="w-4 h-4" />
+              Planner
+            </button>
+            <button
+              onClick={() => setMode("coc")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                mode === "coc"
+                  ? "bg-purple-600 text-white shadow-md"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              }`}
+            >
+              <RefreshCcw className="w-4 h-4" />
+              CoC
             </button>
           </div>
         </header>
 
-        {/* Quick Actions Launcher */}
-        <section>
-          <h2 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Quick Actions</h2>
-          <div className="flex flex-wrap gap-3">
-            <QuickActionLink icon={Zap} label="New FCA" color="text-amber-500" href="/toolkit/fca-pipeline" />
-            <QuickActionLink icon={FileSearch} label="Check Compliance" color="text-emerald-500" href="/toolkit/quality-checker" />
-            <QuickActionLink icon={Scale} label="Justify AT" color="text-indigo-500" href="/toolkit/at-justification" />
-            <QuickActionLink icon={LayoutGrid} label="Evidence Matrix" color="text-violet-500" href="/toolkit/evidence-matrix" />
-          </div>
-        </section>
+        {/* Quick Actions - Only show in Clinician mode */}
+        {mode === "clinician" && (
+          <section>
+            <h2 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Quick Actions</h2>
+            <div className="flex flex-wrap gap-3">
+              <QuickActionLink icon={Zap} label="New FCA" color="text-amber-500" href="/toolkit/fca-pipeline" />
+              <QuickActionLink icon={FileSearch} label="Check Compliance" color="text-emerald-500" href="/toolkit/quality-checker" />
+              <QuickActionLink icon={Scale} label="Justify AT" color="text-indigo-500" href="/toolkit/at-justification" />
+              <QuickActionLink icon={LayoutGrid} label="Evidence Matrix" color="text-violet-500" href="/toolkit/evidence-matrix" />
+            </div>
+          </section>
+        )}
 
         {/* Main Workflow Area */}
-        {userRole === "OT" ? (
+        {mode === "clinician" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Assessment Workflow */}
             <div className="lg:col-span-2 space-y-6">
@@ -240,18 +261,13 @@ export default function Toolkit() {
                </div>
             </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {/* Planner View Placeholder */}
-             <div className="lg:col-span-3 p-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl">
-               <Briefcase className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Planner Review Tools</h3>
-               <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-2">
-                 Switch to &quot;Clinician Mode&quot; to see the OT workflows. Planner tools (Batch Analysis, Alignment Check) are coming in Phase 3.
-               </p>
-             </div>
-          </div>
         )}
+
+        {/* Planner Mode - Section 34 Auditor */}
+        {mode === "planner" && <PlannerMode />}
+
+        {/* CoC Mode - Change of Circumstances Assessor */}
+        {mode === "coc" && <CoCMode />}
       </div>
     </>
   );

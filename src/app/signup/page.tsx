@@ -23,7 +23,7 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -63,7 +63,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row overflow-hidden font-sans bg-white">
       {/* Left Column - Branding (Hidden on small mobile) */}
-      <div className="hidden md:flex w-full md:w-[40%] bg-gradient-to-br from-blue-600 to-indigo-700 p-8 lg:p-12 flex-col justify-between text-white relative overflow-hidden">
+      <div className="hidden md:flex w-full md:w-[40%] bg-gradient-to-br from-indigo-600 to-violet-700 p-8 lg:p-12 flex-col justify-between text-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
           <svg className="absolute top-10 right-10 w-64 h-64 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -72,16 +72,16 @@ export default function SignupPage() {
               fillRule="evenodd"
             ></path>
           </svg>
-          <div className="absolute bottom-20 -left-10 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
-          <div className="absolute top-20 -right-10 w-80 h-80 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+          <div className="absolute bottom-20 -left-10 w-80 h-80 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+          <div className="absolute top-20 -right-10 w-80 h-80 bg-violet-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
         </div>
 
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-xl border border-white/30">
-            P
+        <Link href="/" className="flex items-center gap-3 relative z-10 group">
+          <div className="w-10 h-10 flex items-center justify-center transition-transform group-hover:scale-105">
+            <img src="/logo.svg" alt="Spectra Praxis" className="w-10 h-10" />
           </div>
-          <span className="font-bold text-2xl tracking-tight">Praxis-AI</span>
-        </div>
+          <span className="font-bold text-2xl tracking-tight">Spectra Praxis</span>
+        </Link>
 
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-blue-50 text-xs font-medium mb-6">
@@ -138,15 +138,17 @@ export default function SignupPage() {
       <div className="w-full md:w-[60%] bg-slate-50 flex flex-col h-full overflow-y-auto">
         <div className="max-w-xl w-full mx-auto px-6 py-12 md:py-20 flex-grow flex flex-col justify-center">
           <div className="md:hidden flex items-center gap-2 mb-8 justify-center">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
-              P
-            </div>
-            <span className="font-bold text-xl text-slate-900">Praxis-AI</span>
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 flex items-center justify-center">
+                <img src="/logo.svg" alt="Spectra Praxis" className="w-8 h-8" />
+              </div>
+              <span className="font-bold text-xl text-slate-900">Spectra Praxis</span>
+            </Link>
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
             <div className="h-1.5 w-full bg-slate-100">
-              <div className="h-full w-1/3 bg-blue-600 rounded-r-full"></div>
+              <div className="h-full w-1/3 bg-indigo-600 rounded-r-full"></div>
             </div>
 
             <div className="p-8">
@@ -360,7 +362,7 @@ export default function SignupPage() {
         </div>
 
         <div className="mt-auto py-6 px-6 text-center text-xs text-slate-400 border-t border-slate-200 md:border-none bg-white md:bg-transparent">
-          © {new Date().getFullYear()} Praxis-AI. By signing up, you agree to our{' '}
+          © {new Date().getFullYear()} Spectra Praxis. By signing up, you agree to our{' '}
           <a className="underline hover:text-slate-600" href="#">
             Terms
           </a>{' '}

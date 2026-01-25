@@ -1,12 +1,16 @@
 /**
- * Gemini AI Utility for Spectra Praxis
- * Handles all AI model interactions with proper error handling and fallback support
+ * AI Utility for Spectra Praxis
+ * Handles all AI model interactions with Gemini and Ollama support
+ * Includes proper error handling and provider fallback support
  */
 
 import { GoogleGenerativeAI, GenerativeModel, GenerationConfig } from '@google/generative-ai';
 
-// Model configurations from docs/PROMPTS.md
-const MODEL_CONFIGS = {
+// AI Provider types
+export type AIProvider = 'gemini' | 'ollama';
+
+// Gemini model configurations
+const GEMINI_CONFIGS = {
   pro: {
     model: 'gemini-2.0-flash',
     temperature: 0.3,
@@ -16,6 +20,20 @@ const MODEL_CONFIGS = {
     model: 'gemini-2.0-flash',
     temperature: 0.2,
     maxOutputTokens: 2048,
+  },
+} as const;
+
+// Ollama model configurations
+const OLLAMA_CONFIGS = {
+  pro: {
+    model: 'llama3.3:70b',
+    temperature: 0.3,
+    maxTokens: 4096,
+  },
+  flash: {
+    model: 'llama3.2:latest',
+    temperature: 0.2,
+    maxTokens: 2048,
   },
 } as const;
 
@@ -30,37 +48,60 @@ const NDIS_TERMINOLOGY = {
 
 export type ModelType = 'pro' | 'flash';
 
-interface GeminiResponse<T> {
+export interface AIResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
   model?: string;
+  provider?: AIProvider;
 }
 
-class GeminiClient {
-  private client: GoogleGenerativeAI | null = null;
-  private initialized = false;
+class AIClient {
+  private geminiClient: GoogleGenerativeAI | null = null;
+  private geminiInitialized = false;
 
-  private initialize(): GoogleGenerativeAI {
-    if (!this.initialized) {
+  private initializeGemini(): GoogleGenerativeAI {
+    if (!this.geminiInitialized) {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         throw new Error('GEMINI_API_KEY environment variable is not set');
       }
-      this.client = new GoogleGenerativeAI(apiKey);
-      this.initialized = true;
+      this.geminiClient = new GoogleGenerativeAI(apiKey);
+      this.geminiInitialized = true;
     }
-    return this.client!;
+    return this.geminiClient!;
   }
 
-  private getModel(type: ModelType): GenerativeModel {
-    const client = this.initialize();
-    const config = MODEL_CONFIGS[type];
+  private getOllamaConfig() {
+    const baseUrl = process.env.OLLAMA_BASE_URL;
+    const cfClientId = process.env.CF_ACCESS_CLIENT_ID;
+    const cfClientSecret = process.env.CF_ACCESS_CLIENT_SECRET;
+
+    if (!baseUrl) {
+      throw new Error('OLLAMA_BASE_URL environment variable is not set');
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add Cloudflare Access headers if configured
+    if (cfClientId && cfClientSecret) {
+      headers['CF-Access-Client-Id'] = cfClientId;
+      headers['CF-Access-Client-Secret'] = cfClientSecret;
+    }
+
+    return { baseUrl, headers };
+  }
+
+  private getGeminiModel(type: ModelType): GenerativeModel {
+    const client = this.initializeGemini();
+    const config = GEMINI_CONFIGS[type];
     return client.getGenerativeModel({ model: config.model });
   }
 
-  private getGenerationConfig(type: ModelType): GenerationConfig {
-    const config = MODEL_CONFIGS[type];
+  private getGeminiGenerationConfig(type: ModelType): GenerationConfig {
+    const config = GEMINI_CONFIGS[type];
     return {
       temperature: config.temperature,
       maxOutputTokens: config.maxOutputTokens,
@@ -69,15 +110,81 @@ class GeminiClient {
     };
   }
 
-  async generate<T = string>(
+  // Generate with Ollama
+  private async generateWithOllama<T = string>(
     prompt: string,
     systemPrompt: string,
     modelType: ModelType = 'pro',
     parseAsJson: boolean = false
-  ): Promise<GeminiResponse<T>> {
+  ): Promise<AIResponse<T>> {
     try {
-      const model = this.getModel(modelType);
-      const generationConfig = this.getGenerationConfig(modelType);
+      const { baseUrl, headers } = this.getOllamaConfig();
+      const config = OLLAMA_CONFIGS[modelType];
+
+      const fullPrompt = `${BASE_PERSONA}\n\n${systemPrompt}\n\n---\n\nUser Input:\n${prompt}`;
+
+      console.log(`[Ollama] Using model: ${config.model}`);
+
+      const response = await fetch(`${baseUrl}/api/generate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model: config.model,
+          prompt: fullPrompt,
+          stream: false,
+          options: {
+            temperature: config.temperature,
+            num_predict: config.maxTokens,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      const text = result.response;
+
+      if (parseAsJson) {
+        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, text];
+        const jsonString = jsonMatch[1] || text;
+
+        try {
+          const parsed = JSON.parse(jsonString.trim()) as T;
+          return { success: true, data: parsed, model: config.model, provider: 'ollama' };
+        } catch {
+          const objectMatch = jsonString.match(/\{[\s\S]*\}/) || jsonString.match(/\[[\s\S]*\]/);
+          if (objectMatch) {
+            const parsed = JSON.parse(objectMatch[0]) as T;
+            return { success: true, data: parsed, model: config.model, provider: 'ollama' };
+          }
+          throw new Error('Failed to parse JSON response from Ollama');
+        }
+      }
+
+      return { success: true, data: text as T, model: config.model, provider: 'ollama' };
+    } catch (error) {
+      console.error('Ollama API error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown Ollama error occurred',
+        provider: 'ollama',
+      };
+    }
+  }
+
+  // Generate with Gemini
+  private async generateWithGemini<T = string>(
+    prompt: string,
+    systemPrompt: string,
+    modelType: ModelType = 'pro',
+    parseAsJson: boolean = false
+  ): Promise<AIResponse<T>> {
+    try {
+      const model = this.getGeminiModel(modelType);
+      const generationConfig = this.getGeminiGenerationConfig(modelType);
 
       const fullPrompt = `${BASE_PERSONA}\n\n${systemPrompt}\n\n---\n\nUser Input:\n${prompt}`;
 
@@ -90,52 +197,122 @@ class GeminiClient {
       const text = response.text();
 
       if (parseAsJson) {
-        // Extract JSON from response (handle markdown code blocks)
         const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, text];
         const jsonString = jsonMatch[1] || text;
-        
+
         try {
           const parsed = JSON.parse(jsonString.trim()) as T;
-          return { success: true, data: parsed, model: MODEL_CONFIGS[modelType].model };
-        } catch (parseError) {
-          // Try to find JSON object or array in the response
+          return { success: true, data: parsed, model: GEMINI_CONFIGS[modelType].model, provider: 'gemini' };
+        } catch {
           const objectMatch = jsonString.match(/\{[\s\S]*\}/) || jsonString.match(/\[[\s\S]*\]/);
           if (objectMatch) {
             const parsed = JSON.parse(objectMatch[0]) as T;
-            return { success: true, data: parsed, model: MODEL_CONFIGS[modelType].model };
+            return { success: true, data: parsed, model: GEMINI_CONFIGS[modelType].model, provider: 'gemini' };
           }
-          throw parseError;
+          throw new Error('Failed to parse JSON response');
         }
       }
 
-      return { success: true, data: text as T, model: MODEL_CONFIGS[modelType].model };
+      return { success: true, data: text as T, model: GEMINI_CONFIGS[modelType].model, provider: 'gemini' };
     } catch (error) {
       console.error('Gemini API error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
+        provider: 'gemini',
       };
     }
   }
 
+  // Main generate method - supports provider selection
+  async generate<T = string>(
+    prompt: string,
+    systemPrompt: string,
+    modelType: ModelType = 'pro',
+    parseAsJson: boolean = false,
+    preferredProvider: AIProvider = 'gemini'
+  ): Promise<AIResponse<T>> {
+    if (preferredProvider === 'ollama') {
+      return this.generateWithOllama<T>(prompt, systemPrompt, modelType, parseAsJson);
+    }
+    return this.generateWithGemini<T>(prompt, systemPrompt, modelType, parseAsJson);
+  }
+
+  // Generate with automatic fallback between providers
+  async generateWithProviderFallback<T = string>(
+    prompt: string,
+    systemPrompt: string,
+    modelType: ModelType = 'pro',
+    parseAsJson: boolean = false,
+    preferredProvider: AIProvider = 'gemini',
+    enableFallback: boolean = true
+  ): Promise<AIResponse<T>> {
+    // Try preferred provider first
+    const primaryResult = await this.generate<T>(prompt, systemPrompt, modelType, parseAsJson, preferredProvider);
+    if (primaryResult.success) {
+      return primaryResult;
+    }
+
+    if (!enableFallback) {
+      return primaryResult;
+    }
+
+    // Fallback to alternative provider
+    const fallbackProvider: AIProvider = preferredProvider === 'gemini' ? 'ollama' : 'gemini';
+    console.warn(`[AI] ${preferredProvider} failed, falling back to ${fallbackProvider}`);
+
+    return this.generate<T>(prompt, systemPrompt, modelType, parseAsJson, fallbackProvider);
+  }
+
+  // Legacy method - maintains backwards compatibility
   async generateWithFallback<T = string>(
     prompt: string,
     systemPrompt: string,
     parseAsJson: boolean = false
-  ): Promise<GeminiResponse<T>> {
-    // Try pro model first, fallback to flash
-    const proResult = await this.generate<T>(prompt, systemPrompt, 'pro', parseAsJson);
+  ): Promise<AIResponse<T>> {
+    // Try pro model first, fallback to flash (Gemini only)
+    const proResult = await this.generateWithGemini<T>(prompt, systemPrompt, 'pro', parseAsJson);
     if (proResult.success) {
       return proResult;
     }
 
     console.warn('Pro model failed, falling back to flash model');
-    return this.generate<T>(prompt, systemPrompt, 'flash', parseAsJson);
+    return this.generateWithGemini<T>(prompt, systemPrompt, 'flash', parseAsJson);
+  }
+
+  // Check if Ollama is configured
+  isOllamaConfigured(): boolean {
+    return !!process.env.OLLAMA_BASE_URL;
+  }
+
+  // Check if Gemini is configured
+  isGeminiConfigured(): boolean {
+    return !!process.env.GEMINI_API_KEY;
+  }
+
+  // Check Ollama connectivity
+  async checkOllamaStatus(): Promise<{ online: boolean; error?: string }> {
+    try {
+      const { baseUrl, headers } = this.getOllamaConfig();
+      const response = await fetch(`${baseUrl}/api/tags`, {
+        method: 'GET',
+        headers,
+      });
+      return { online: response.ok };
+    } catch (error) {
+      return {
+        online: false,
+        error: error instanceof Error ? error.message : 'Connection failed'
+      };
+    }
   }
 }
 
 // Singleton instance
-export const gemini = new GeminiClient();
+export const gemini = new AIClient();
+
+// Export the client class for type purposes
+export { AIClient };
 
 // System prompts for each feature
 export const SYSTEM_PROMPTS = {

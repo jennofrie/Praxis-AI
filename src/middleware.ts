@@ -1,6 +1,17 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Admin email addresses - must match config/admin.ts
+const ADMIN_EMAILS = [
+  'markaberiongibson@gmail.com',
+  'daguiljennofrie@gmail.com',
+] as const;
+
+function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase() as typeof ADMIN_EMAILS[number]);
+}
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -15,7 +26,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -37,6 +48,10 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ['/login', '/signup', '/auth'];
   const isPublicRoute = publicRoutes.some(route => path.startsWith(route));
 
+  // Admin-only routes (require admin email)
+  const adminRoutes = ['/admin', '/settings/users', '/settings/integrations', '/settings/prompts'];
+  const isAdminRoute = adminRoutes.some(route => path.startsWith(route));
+
   // If user is NOT logged in and trying to access a protected route
   if (!user && !isPublicRoute) {
     // Redirect to login
@@ -50,6 +65,15 @@ export async function middleware(request: NextRequest) {
     // Redirect to dashboard (root)
     const url = request.nextUrl.clone();
     url.pathname = '/';
+    return NextResponse.redirect(url);
+  }
+
+  // If user is trying to access an admin-only route without admin privileges
+  if (user && isAdminRoute && !isAdminEmail(user.email)) {
+    // Redirect to home with unauthorized message
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    url.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(url);
   }
 

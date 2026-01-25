@@ -7,7 +7,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { GeminiClient, SYSTEM_PROMPTS } from "../_shared/gemini.ts";
+import { GeminiClient, SYSTEM_PROMPTS, AIProvider } from "../_shared/gemini.ts";
 
 interface EvidenceMatrixRequest {
   notes: string;
@@ -15,6 +15,9 @@ interface EvidenceMatrixRequest {
     domain: string;
     observations: string[];
   }[];
+  // AI Provider settings
+  provider?: AIProvider;
+  enableFallback?: boolean;
 }
 
 const gemini = new GeminiClient();
@@ -28,6 +31,11 @@ Deno.serve(async (req: Request) => {
   try {
     const body: EvidenceMatrixRequest = await req.json();
     console.log('[Evidence Matrix] Processing request...');
+
+    // Get provider settings from request
+    const preferredProvider: AIProvider = body.provider || 'gemini';
+    const enableFallback = body.enableFallback !== false;
+    console.log('[Evidence Matrix] Provider:', preferredProvider, '| Fallback:', enableFallback);
 
     if (!body.notes) {
       return new Response(
@@ -47,11 +55,13 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log('[Evidence Matrix] Analyzing notes...');
-    const result = await gemini.generate(
+    const result = await gemini.generateWithProviderFallback(
       prompt,
       SYSTEM_PROMPTS.evidenceMatrix,
       'pro',
-      true
+      true,
+      preferredProvider,
+      enableFallback
     );
 
     if (!result.success) {
@@ -68,6 +78,7 @@ Deno.serve(async (req: Request) => {
         success: true,
         data: result.data,
         model: result.model,
+        provider: result.provider,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

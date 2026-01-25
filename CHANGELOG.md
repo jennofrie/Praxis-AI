@@ -9,15 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **FCA Pipeline Intake Enhancement** (2026-01-25)
+  - Extended `FCASessionData` interface with comprehensive intake fields
+  - Added `sessionDate`, `sessionTime`, `clinicianName`, `sessionType`, `location` fields
+  - Added optional fields: `referralReason`, `referrerContact`, `intakeNotes`, `rawNotes`
+  - Created `IntakeAttachment` interface for file upload support (PDF, DOCX, TXT)
+  - Implemented auto-domain mapping when intake notes are present
+  - Added persistence of raw notes across Domain Mapper workflow
+  - Prepared foundation for Supabase storage integration
+
+### Changed
+- **Domain Mapper Component**
+  - Added `initialNotes` and `autoAnalyze` props for seamless workflow
+  - Auto-triggers domain mapping when notes are provided from intake
+  - Persists raw notes in session data for continuity
+  - Enhanced notes state management with proper data flow
+
+### Fixed
+- Build error: Module not found `@supabase/auth-helpers-nextjs`
+  - Migrated from deprecated package to `@supabase/ssr`
+  - Updated AdminContext to use `createClient` from `@/lib/supabase/client`
+- TypeScript errors across multiple files
+  - Removed unused imports (lucide-react icons)
+  - Added null coalescing operators for type safety
+  - Fixed string | undefined type issues
+  - Excluded Supabase edge functions from TypeScript checking
+
 ### Planned Features
-- User authentication and authorization system
-- Participant management with CRUD operations
-- Dashboard with analytics and key metrics
-- AI-powered report generation
-- NDIS plan management
-- Audit logging and compliance tracking
-- Real-time notifications
-- Mobile-responsive design implementation
+- Session Intake form expansion with NDIS best practices
+- File upload UI with PDF/DOCX/TXT parsing
+- Supabase persistence for intake sessions
+- Required field validation with NDIS number pattern enforcement
+- Auto-save and resume draft functionality
+- Consent tracking (deferred)
 
 ---
 

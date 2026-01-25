@@ -11,7 +11,6 @@ import {
   Loader2,
   CheckCircle,
   DollarSign,
-  Clock,
   Heart,
   Wrench,
   Scale,
@@ -105,6 +104,12 @@ export default function ATJustification() {
     const recommended = sortedOptions[0];
     const alternative = sortedOptions[1];
     
+    if (!recommended || !alternative) {
+      console.error('Insufficient options for justification');
+      setIsGenerating(false);
+      return;
+    }
+    
     try {
       // Convert maintenance cost to numeric value
       const getMaintenanceCost = (level: string) => {
@@ -124,9 +129,9 @@ export default function ATJustification() {
           diagnosis: baseline.currentMethod,
           assessmentScores: [{
             tool: baseline.assessmentTool,
-            baseline: parseInt(baseline.baselineScore.split('/')[0]) || 0,
-            withAT: Math.min(10, (parseInt(baseline.baselineScore.split('/')[0]) || 0) + 2),
-            scale: baseline.baselineScore.includes('/') ? baseline.baselineScore.split('/')[1] : undefined,
+            baseline: parseInt(baseline.baselineScore?.split('/')[0] ?? '0') || 0,
+            withAT: Math.min(10, (parseInt(baseline.baselineScore?.split('/')[0] ?? '0') || 0) + 2),
+            scale: baseline.baselineScore?.includes('/') ? baseline.baselineScore.split('/')[1] : undefined,
           }],
           selectedAT: {
             name: recommended.name,

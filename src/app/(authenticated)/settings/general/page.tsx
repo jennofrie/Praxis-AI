@@ -1,30 +1,63 @@
 "use client";
 
+import { useState } from "react";
 import { Header } from "@/components/layout/Header";
-import { Badge, Settings, Users, CreditCard, Puzzle, ShieldCheck, ChevronRight, Server, Database, Brain, Sun, Moon, Monitor } from "lucide-react";
+import { Badge, ChevronRight, Server, Database, Brain, Sun, Moon, Cloud, HardDrive, RefreshCw, CheckCircle, XCircle, Loader2, Shield, FileText, Lock, Users, AlertTriangle, Plus, X, Sparkles } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { useAIProvider } from "@/components/providers/AIProviderContext";
+import { useAdmin } from "@/components/providers/AdminContext";
 
 export default function GeneralSettings() {
   const { theme, setTheme } = useTheme();
+  const { provider, setProvider, enableFallback, setEnableFallback, ollamaStatus, checkOllamaStatus } = useAIProvider();
+  const { isAdmin, isLoading, user } = useAdmin();
+  const [activePromptTab, setActivePromptTab] = useState<string>("fca-pipeline");
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <>
+        <Header title="General Settings" />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <Header title="General Settings" />
-      
+
       <div className="flex-1 overflow-y-auto p-6 md:p-8 lg:px-12 flex flex-col">
         <div className="mx-auto max-w-7xl w-full">
           {/* Page Header Content */}
           <div className="flex flex-col gap-2 mb-8">
-            <p className="text-slate-500 dark:text-slate-400 max-w-2xl">Manage your organization details, NDIS parameters, and system-wide preferences for clinical documentation.</p>
+            <div className="flex items-center gap-3">
+              <p className="text-slate-500 dark:text-slate-400 max-w-2xl">
+                Manage your organization details, NDIS parameters, and system-wide preferences for clinical documentation.
+              </p>
+              {isAdmin && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                  <Shield className="w-3.5 h-3.5" />
+                  Admin
+                </span>
+              )}
+            </div>
+            {user && (
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                Logged in as: {user.email}
+              </p>
+            )}
           </div>
 
           {/* Tabs */}
           <div className="mb-8 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
             <nav className="flex gap-8 min-w-max">
               <TabLink active>General</TabLink>
-              <TabLink>Team Members</TabLink>
+              {isAdmin && <TabLink>Team Members</TabLink>}
               <TabLink>Billing & Plans</TabLink>
-              <TabLink>Integrations</TabLink>
+              {isAdmin && <TabLink>Integrations</TabLink>}
               <TabLink>Security</TabLink>
             </nav>
           </div>
@@ -33,7 +66,7 @@ export default function GeneralSettings() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 pb-12">
             {/* LEFT COLUMN (Main Settings) */}
             <div className="lg:col-span-8 space-y-6">
-              {/* Card: Theme Settings */}
+              {/* Card: Theme Settings - Available to all users */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                 <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
                   <div className="flex items-center gap-2">
@@ -112,7 +145,7 @@ export default function GeneralSettings() {
                 </div>
               </div>
 
-              {/* Card: Organization Details */}
+              {/* Card: Organization Details - Available to all users */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                 <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">Organization Details</h3>
@@ -128,7 +161,7 @@ export default function GeneralSettings() {
                 </div>
               </div>
 
-              {/* Card: NDIS Configuration */}
+              {/* Card: NDIS Configuration - Available to all users */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                 <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                   <div>
@@ -152,71 +185,246 @@ export default function GeneralSettings() {
                 </div>
               </div>
 
-              {/* Card: AI Settings */}
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="text-indigo-600 w-5 h-5" />
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">AI Documentation Settings</h3>
-                  </div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Configure how the AI assists with clinical notes and report generation.</p>
-                </div>
-                <div className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-slate-900 dark:text-slate-200">AI Model</label>
-                      <select className="w-full rounded-lg border-slate-300 dark:border-slate-700 text-sm py-2.5 focus:border-indigo-600 focus:ring-indigo-600 dark:bg-slate-800 dark:text-white">
-                        <option>Clinical-LLM-v2 (Standard)</option>
-                        <option>Clinical-LLM-v2 (Enhanced)</option>
-                        <option>GPT-4 (Generic)</option>
-                      </select>
+              {/* ==================== ADMIN ONLY SECTIONS ==================== */}
+
+              {/* Card: AI Provider Settings - ADMIN ONLY */}
+              {isAdmin && (
+                <div className="rounded-xl border-2 border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-900 shadow-sm">
+                  <div className="px-6 py-5 border-b border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="text-indigo-600 w-5 h-5" />
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">AI Provider Settings</h3>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-md bg-indigo-100 dark:bg-indigo-900/50 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                        <Lock className="w-3 h-3" /> Admin Only
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between pt-6">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Choose your preferred AI provider for clinical documentation assistance.</p>
+                  </div>
+                  <div className="p-6 space-y-6">
+                    {/* Provider Selection */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Primary AI Provider</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Gemini Option */}
+                        <button
+                          onClick={() => setProvider("gemini")}
+                          className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all cursor-pointer ${
+                            provider === "gemini"
+                              ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                              : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                          }`}
+                        >
+                          {provider === "gemini" && (
+                            <div className="absolute top-3 right-3">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white">
+                                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </span>
+                            </div>
+                          )}
+                          <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm">
+                            <Cloud className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="text-center">
+                            <span className={`text-sm font-semibold ${provider === "gemini" ? "text-indigo-600" : "text-slate-900 dark:text-white"}`}>
+                              Gemini (Cloud)
+                            </span>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Google AI - Fast & Reliable</p>
+                          </div>
+                        </button>
+
+                        {/* Ollama Option */}
+                        <button
+                          onClick={() => setProvider("ollama")}
+                          className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all cursor-pointer ${
+                            provider === "ollama"
+                              ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                              : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                          }`}
+                        >
+                          {provider === "ollama" && (
+                            <div className="absolute top-3 right-3">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white">
+                                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </span>
+                            </div>
+                          )}
+                          <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-sm">
+                            <HardDrive className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="text-center">
+                            <span className={`text-sm font-semibold ${provider === "ollama" ? "text-indigo-600 dark:text-indigo-400" : "text-slate-900 dark:text-white"}`}>
+                              Ollama (Local)
+                            </span>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Self-hosted - Private & Secure</p>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Ollama Status */}
+                    {provider === "ollama" && (
+                      <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center gap-3">
+                          {ollamaStatus === "checking" && (
+                            <>
+                              <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                              <span className="text-sm text-slate-600 dark:text-slate-300">Checking Ollama connection...</span>
+                            </>
+                          )}
+                          {ollamaStatus === "online" && (
+                            <>
+                              <CheckCircle className="w-5 h-5 text-emerald-500" />
+                              <span className="text-sm text-emerald-600 dark:text-emerald-400">Ollama server is online</span>
+                            </>
+                          )}
+                          {ollamaStatus === "offline" && (
+                            <>
+                              <XCircle className="w-5 h-5 text-red-500" />
+                              <span className="text-sm text-red-600 dark:text-red-400">Ollama server is offline</span>
+                            </>
+                          )}
+                          {ollamaStatus === "unconfigured" && (
+                            <>
+                              <XCircle className="w-5 h-5 text-amber-500" />
+                              <span className="text-sm text-amber-600 dark:text-amber-400">Ollama not configured</span>
+                            </>
+                          )}
+                        </div>
+                        <button
+                          onClick={checkOllamaStatus}
+                          className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                          title="Refresh status"
+                        >
+                          <RefreshCw className={`w-4 h-4 text-slate-500 ${ollamaStatus === "checking" ? "animate-spin" : ""}`} />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Fallback Toggle */}
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium text-slate-900 dark:text-white">Auto-generate goals</span>
-                        <span className="text-xs text-slate-500">Suggest GAS goals from notes</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-white">Enable Provider Fallback</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Automatically switch to alternate provider if primary fails</span>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" className="sr-only peer" defaultChecked />
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={enableFallback}
+                          onChange={(e) => setEnableFallback(e.target.checked)}
+                        />
                         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-600/20 dark:peer-focus:ring-indigo-600/40 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
                       </label>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Confidence Threshold</label>
-                      <span className="text-sm font-bold text-indigo-600">85%</span>
-                    </div>
-                    <input className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:bg-slate-700" type="range" min="50" max="100" defaultValue="85" />
-                    <p className="text-xs text-slate-500">AI will flag suggestions below this confidence score for manual review.</p>
-                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Card: Clinical Workflow */}
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Clinical Workflow</h3>
-                </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Default Report Template</label>
-                    <select className="w-full rounded-lg border-slate-300 dark:border-slate-700 text-sm py-2.5 focus:border-indigo-600 focus:ring-indigo-600 dark:bg-slate-800 dark:text-white">
-                      <option>NDIS Standard Progress Report</option>
-                      <option>Initial Assessment</option>
-                      <option>Functional Capacity Assessment</option>
-                    </select>
+              {/* Card: AI Prompt Editor - ADMIN ONLY */}
+              {isAdmin && (
+                <div className="rounded-xl border-2 border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-900 shadow-sm">
+                  <div className="px-6 py-5 border-b border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="text-indigo-600 w-5 h-5" />
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">AI Prompt Editor</h3>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-md bg-indigo-100 dark:bg-indigo-900/50 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                        <Lock className="w-3 h-3" /> Admin Only
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Customize AI prompts for each feature module.</p>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Review Period</label>
-                    <select className="w-full rounded-lg border-slate-300 dark:border-slate-700 text-sm py-2.5 focus:border-indigo-600 focus:ring-indigo-600 dark:bg-slate-800 dark:text-white">
-                      <option>Quarterly (Every 3 months)</option>
-                      <option>Bi-Annual (Every 6 months)</option>
-                      <option>Annual (Every 12 months)</option>
-                    </select>
+                  <div className="p-6 space-y-4">
+                    {/* Prompt Tabs */}
+                    <div className="flex flex-wrap gap-2">
+                      {PROMPT_FEATURES.map((feature) => (
+                        <button
+                          key={feature.id}
+                          onClick={() => setActivePromptTab(feature.id)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            activePromptTab === feature.id
+                              ? "bg-indigo-600 text-white"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                          }`}
+                        >
+                          {feature.name}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Active Prompt Editor */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-slate-900 dark:text-slate-200">
+                        System Prompt for {PROMPT_FEATURES.find(f => f.id === activePromptTab)?.name}
+                      </label>
+                      <textarea
+                        className="w-full h-48 rounded-lg border-slate-300 dark:border-slate-700 text-sm font-mono focus:border-indigo-600 focus:ring-indigo-600 dark:bg-slate-800 dark:text-white resize-none"
+                        placeholder="Enter the system prompt for this AI feature..."
+                        defaultValue={PROMPT_FEATURES.find(f => f.id === activePromptTab)?.defaultPrompt}
+                      />
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Changes will affect how the AI responds for this specific feature.
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                      <button className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        Reset to Default
+                      </button>
+                      <button className="px-4 py-2 rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+                        Save Prompt
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Card: User Management - ADMIN ONLY */}
+              {isAdmin && (
+                <div className="rounded-xl border-2 border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-900 shadow-sm">
+                  <div className="px-6 py-5 border-b border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="text-indigo-600 w-5 h-5" />
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">User Management</h3>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-md bg-indigo-100 dark:bg-indigo-900/50 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                        <Lock className="w-3 h-3" /> Admin Only
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">View and manage registered users.</p>
+                  </div>
+                  <div className="p-6">
+                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                      <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">User list will be populated from Supabase.</p>
+                      <p className="text-xs mt-1">Connect to database to manage users.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Non-admin notice */}
+              {!isAdmin && (
+                <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-6">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300">Limited Access</h4>
+                      <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                        Some settings are restricted to administrators only. Contact your administrator if you need access to AI provider settings, prompt editing, or user management.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Action Bar */}
               <div className="flex justify-end gap-3 pt-2">
@@ -252,15 +460,28 @@ export default function GeneralSettings() {
                 </div>
               </div>
 
-              {/* Card: System Status */}
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">System Status</h3>
+              {/* Card: System Status - ADMIN ONLY gets detailed view */}
+              <div className={`rounded-xl border ${isAdmin ? "border-2 border-indigo-200 dark:border-indigo-800" : "border-slate-200 dark:border-slate-800"} bg-white dark:bg-slate-900 shadow-sm`}>
+                <div className={`px-6 py-4 border-b ${isAdmin ? "border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/20" : "border-slate-200 dark:border-slate-800"}`}>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">System Status</h3>
+                    {isAdmin && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-indigo-100 dark:bg-indigo-900/50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                        <Lock className="w-3 h-3" />
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  <StatusRow icon={Server} label="API Gateway" />
-                  <StatusRow icon={Brain} label="AI Engine" />
-                  <StatusRow icon={Database} label="Database" />
+                  <StatusRow icon={Server} label="API Gateway" status="operational" />
+                  <StatusRow icon={Brain} label="AI Engine" status="operational" />
+                  <StatusRow icon={Database} label="Database" status="operational" />
+                  {isAdmin && (
+                    <>
+                      <StatusRow icon={Cloud} label="Gemini API" status="operational" />
+                      <StatusRow icon={HardDrive} label="Ollama Server" status={ollamaStatus === "online" ? "operational" : ollamaStatus === "offline" ? "offline" : "unknown"} />
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -270,9 +491,10 @@ export default function GeneralSettings() {
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">Quick Links</h3>
                 </div>
                 <div className="flex flex-col">
-                  <QuickLink>Manage Users</QuickLink>
+                  {isAdmin && <QuickLink>Manage Users</QuickLink>}
                   <QuickLink>View Invoices</QuickLink>
                   <QuickLink>Contact Support</QuickLink>
+                  {isAdmin && <QuickLink>View Logs</QuickLink>}
                 </div>
               </div>
             </div>
@@ -283,7 +505,15 @@ export default function GeneralSettings() {
   );
 }
 
-import { Plus, X, Sparkles } from "lucide-react";
+// Prompt features configuration
+const PROMPT_FEATURES = [
+  { id: "fca-pipeline", name: "FCA Pipeline", defaultPrompt: "You are drafting the 'Functional Performance' section of an NDIS FCA report..." },
+  { id: "evidence-matrix", name: "Evidence Matrix", defaultPrompt: "You are analyzing clinical session notes to map evidence against the NDIS Functional Capacity Framework..." },
+  { id: "at-justification", name: "AT Justification", defaultPrompt: "Draft an AT Justification comparing the Selected Item vs. the Alternative..." },
+  { id: "quality-checker", name: "Quality Checker", defaultPrompt: "You are an NDIS Quality Auditor. Review the following report excerpt for compliance risks..." },
+  { id: "goal-progress", name: "Goal Progress", defaultPrompt: "You are generating a goal progress summary for an NDIS participant..." },
+  { id: "ai-chat", name: "AI Chat", defaultPrompt: "You are an AI assistant for NDIS clinical documentation..." },
+];
 
 function TabLink({ active, children }: { active?: boolean, children: React.ReactNode }) {
   return (
@@ -293,7 +523,7 @@ function TabLink({ active, children }: { active?: boolean, children: React.React
   );
 }
 
-function InputGroup({ label, value, type = "text", icon }: any) {
+function InputGroup({ label, value, type = "text", icon }: { label: string; value: string; type?: string; icon?: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium text-slate-900 dark:text-slate-200">{label}</label>
@@ -303,9 +533,9 @@ function InputGroup({ label, value, type = "text", icon }: any) {
             {icon}
           </div>
         )}
-        <input 
-          className={`block w-full rounded-lg border-slate-300 py-2.5 text-sm focus:border-indigo-600 focus:ring-indigo-600 dark:bg-slate-800 dark:border-slate-700 dark:text-white ${icon ? "pl-10" : ""}`} 
-          type={type} 
+        <input
+          className={`block w-full rounded-lg border-slate-300 py-2.5 text-sm focus:border-indigo-600 focus:ring-indigo-600 dark:bg-slate-800 dark:border-slate-700 dark:text-white ${icon ? "pl-10" : ""}`}
+          type={type}
           defaultValue={value}
         />
       </div>
@@ -325,7 +555,14 @@ function Tag({ children }: { children: React.ReactNode }) {
   );
 }
 
-function StatusRow({ icon: Icon, label }: any) {
+function StatusRow({ icon: Icon, label, status = "operational" }: { icon: React.ElementType; label: string; status?: "operational" | "offline" | "unknown" }) {
+  const statusConfig = {
+    operational: { color: "emerald", text: "Operational" },
+    offline: { color: "red", text: "Offline" },
+    unknown: { color: "amber", text: "Unknown" },
+  };
+  const config = statusConfig[status];
+
   return (
     <div className="flex items-center justify-between px-6 py-4">
       <div className="flex items-center gap-3">
@@ -333,8 +570,8 @@ function StatusRow({ icon: Icon, label }: any) {
         <span className="text-sm font-medium text-slate-900 dark:text-slate-200">{label}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Operational</span>
+        <span className={`h-2 w-2 rounded-full bg-${config.color}-500`}></span>
+        <span className={`text-xs font-medium text-${config.color}-700 dark:text-${config.color}-400`}>{config.text}</span>
       </div>
     </div>
   );

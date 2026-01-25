@@ -1,8 +1,7 @@
 "use client";
 
 import { Header } from "@/components/layout/Header";
-import { Search, Plus, Bell, Filter, List, TrendingUp, CheckCircle, Clock, BarChart2, MoreHorizontal, X, User } from "lucide-react";
-import Image from "next/image";
+import { TrendingUp, CheckCircle, Clock, BarChart2, X, User } from "lucide-react";
 
 export default function Participants() {
   return (

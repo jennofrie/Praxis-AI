@@ -13,7 +13,11 @@ export default function FCAPipeline() {
   const [data, setData] = useState<FCASessionData>({
     participantName: "",
     ndisNumber: "",
-    date: new Date().toISOString().split("T")[0],
+    sessionDate: new Date().toISOString().split("T")[0] ?? "",
+    sessionTime: "",
+    clinicianName: "",
+    sessionType: "",
+    location: "",
     diagnosis: "",
     observations: {},
     goals: []
@@ -92,7 +96,11 @@ export default function FCAPipeline() {
                  setData({
                    participantName: "",
                    ndisNumber: "",
-                   date: new Date().toISOString().split("T")[0],
+                   sessionDate: new Date().toISOString().split("T")[0] ?? "",
+                   sessionTime: "",
+                   clinicianName: "",
+                   sessionType: "",
+                   location: "",
                    diagnosis: "",
                    observations: {},
                    goals: []

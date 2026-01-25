@@ -21,7 +21,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -54,18 +54,18 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex font-sans text-slate-900 bg-slate-50">
       {/* Left Column - Branding (Hidden on Mobile) */}
-      <div className="hidden lg:flex w-[40%] bg-gradient-to-br from-blue-600 to-blue-800 relative flex-col justify-between p-12 text-white overflow-hidden">
+      <div className="hidden lg:flex w-[40%] bg-gradient-to-br from-indigo-600 to-violet-800 relative flex-col justify-between p-12 text-white overflow-hidden">
         {/* Animated Blobs */}
-        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-96 h-96 bg-indigo-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-96 h-96 bg-violet-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
         {/* Logo */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-            S
+        <Link href="/" className="flex items-center gap-3 relative z-10 group">
+          <div className="w-10 h-10 flex items-center justify-center transition-transform group-hover:scale-105">
+            <img src="/logo.svg" alt="Spectra Praxis" className="w-10 h-10" />
           </div>
           <span className="font-bold text-2xl tracking-tight">Spectra Praxis</span>
-        </div>
+        </Link>
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-md">
@@ -147,8 +147,12 @@ export default function LoginPage() {
       <div className="w-full lg:w-[60%] bg-white flex flex-col items-center justify-center p-6 lg:p-12 relative overflow-y-auto">
         {/* Mobile Header */}
         <div className="lg:hidden absolute top-6 left-6 flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg">S</div>
-          <span className="font-bold text-xl tracking-tight text-slate-900">Spectra Praxis</span>
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 flex items-center justify-center">
+               <img src="/logo.svg" alt="Spectra Praxis" className="w-8 h-8" />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-slate-900">Spectra Praxis</span>
+          </Link>
         </div>
 
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">

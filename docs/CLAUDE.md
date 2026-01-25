@@ -36,6 +36,20 @@ Praxis AI (Praxis AI Platform) is a clinical workflow management system for heal
 ### 1. Code Quality Standards
 
 #### TypeScript Usage
+
+**🚨 CRITICAL PRODUCTION RULE: ZERO TOLERANCE FOR `any` TYPES**
+
+This project MUST be production-ready with 100% type safety. Using `any` types is **STRICTLY PROHIBITED** and will block production deployment.
+
+**Rules:**
+- ❌ **NEVER** use `any` type - it defeats TypeScript's purpose
+- ❌ **NEVER** use implicit `any` (enable `noImplicitAny` in tsconfig.json)
+- ✅ **ALWAYS** define explicit interfaces/types for all data structures
+- ✅ **ALWAYS** type all function parameters and return values
+- ✅ **ALWAYS** type all React component props
+- ✅ Use `unknown` for truly unknown types, then narrow with type guards
+- ✅ Use generic types `<T>` when appropriate for reusable components
+
 ```typescript
 // ✅ GOOD: Explicit types, clear interfaces
 interface Participant {
@@ -48,8 +62,33 @@ interface Participant {
   updatedAt: Date;
 }
 
-// ❌ BAD: Using 'any', implicit types
+// ✅ GOOD: Typed function with explicit return type
+function getParticipant(id: string): Promise<Participant | null> {
+  // ...
+}
+
+// ✅ GOOD: Typed component props
+interface ParticipantCardProps {
+  participant: Participant;
+  onEdit?: (id: string) => void;
+}
+
+export function ParticipantCard({ participant, onEdit }: ParticipantCardProps) {
+  // ...
+}
+
+// ❌ BAD: Using 'any' - NEVER DO THIS
 const getParticipant = (id: any) => {
+  // ...
+}
+
+// ❌ BAD: Implicit any in parameters
+function processData(data) { // TypeScript error if noImplicitAny is enabled
+  // ...
+}
+
+// ❌ BAD: any in props
+function Card({ data }: { data: any }) {
   // ...
 }
 ```

@@ -6,13 +6,11 @@ import {
   ChevronRight, 
   Target, 
   Plus, 
-  Trash2, 
-  Save,
+  Trash2,
   TrendingUp,
   Clock,
   CheckCircle,
   AlertCircle,
-  Sparkles,
   Download,
   Edit2
 } from "lucide-react";
@@ -76,7 +74,7 @@ export default function GoalProgress() {
 
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isAddingGoal, setIsAddingGoal] = useState(false);
-  const [newGoal, setNewGoal] = useState({ title: "", description: "", domain: DOMAINS[0], targetDate: "" });
+  const [newGoal, setNewGoal] = useState<{ title: string; description: string; domain: string; targetDate: string }>({ title: "", description: "", domain: DOMAINS[0] ?? '', targetDate: "" });
   const [newSession, setNewSession] = useState<{ note: string; progressIndicator: "positive" | "neutral" | "regression" }>({ note: "", progressIndicator: "neutral" });
 
   const addGoal = () => {
@@ -84,14 +82,17 @@ export default function GoalProgress() {
     
     const goal: Goal = {
       id: Date.now().toString(),
-      ...newGoal,
+      title: newGoal.title,
+      description: newGoal.description,
+      domain: newGoal.domain ?? DOMAINS[0],
+      targetDate: newGoal.targetDate,
       status: "not_started",
       sessions: [],
-      createdAt: new Date().toISOString().split("T")[0]
+      createdAt: new Date().toISOString().split("T")[0] ?? ''
     };
     
     setGoals([...goals, goal]);
-    setNewGoal({ title: "", description: "", domain: DOMAINS[0], targetDate: "" });
+    setNewGoal({ title: "", description: "", domain: DOMAINS[0] ?? '', targetDate: "" });
     setIsAddingGoal(false);
   };
 
@@ -107,7 +108,7 @@ export default function GoalProgress() {
     
     const session: SessionNote = {
       id: Date.now().toString(),
-      date: new Date().toISOString().split("T")[0],
+      date: new Date().toISOString().split("T")[0] ?? '',
       note: newSession.note,
       progressIndicator: newSession.progressIndicator
     };
@@ -282,7 +283,6 @@ export default function GoalProgress() {
               {/* Goals Cards */}
               <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
                 {goals.map((goal) => {
-                  const StatusIcon = STATUS_CONFIG[goal.status].icon;
                   return (
                     <div
                       key={goal.id}

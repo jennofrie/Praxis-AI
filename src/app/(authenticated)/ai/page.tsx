@@ -1,7 +1,7 @@
 "use client";
 
 import { Header } from "@/components/layout/Header";
-import { Mic, Send, Paperclip, Sparkles, Copy, RefreshCw, FilePlus, Lightbulb, History, MoreHorizontal } from "lucide-react";
+import { Mic, Send, Paperclip, Sparkles, Copy, RefreshCw, FilePlus, Lightbulb, History } from "lucide-react";
 
 export default function AIAssistant() {
   return (

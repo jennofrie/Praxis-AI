@@ -2,26 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  Bot, 
-  Briefcase, 
-  ShieldCheck, 
-  ScrollText, 
-  Settings, 
-  HelpCircle, 
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Bot,
+  Briefcase,
+  ShieldCheck,
+  ScrollText,
+  Settings,
+  HelpCircle,
   Search,
   Command
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAIAssistant } from "@/components/providers/AIAssistantContext";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard, section: "Clinical Workflow" },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, section: "Clinical Workflow" },
   { name: "Participants", href: "/participants", icon: Users, section: "Clinical Workflow" },
   { name: "Reports & Docs", href: "/reports", icon: FileText, section: "Clinical Workflow" },
-  { name: "AI Assistant", href: "/ai", icon: Bot, section: "Clinical Workflow", badge: "NEW" },
+  { name: "AI Assistant", href: "#", icon: Bot, section: "Clinical Workflow", badge: "NEW", isAIAssistant: true },
   { name: "Toolkit", href: "/toolkit", icon: Briefcase, section: "Clinical Workflow" },
   { name: "Audits", href: "/audits", icon: ShieldCheck, section: "Compliance" },
   { name: "NDIS Plans", href: "/ndis-plans", icon: ScrollText, section: "Compliance" },
@@ -31,6 +32,7 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { isOpen: isAIAssistantOpen, openAssistant } = useAIAssistant();
 
   // Group items by section
   const sections = ["Clinical Workflow", "Compliance", "Settings"];
@@ -75,15 +77,44 @@ export function Sidebar() {
             </h3>
             <ul className="space-y-1">
               {navigation.filter(item => item.section === section).map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = item.isAIAssistant ? isAIAssistantOpen : pathname === item.href;
+
+                // Render AI Assistant as a button that opens the widget
+                if (item.isAIAssistant) {
+                  return (
+                    <li key={item.name}>
+                      <button
+                        onClick={openAssistant}
+                        className={cn(
+                          "flex items-center gap-3 px-2 py-2.5 rounded-lg transition-colors group text-sm font-medium w-full text-left",
+                          isActive
+                            ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"
+                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                        )}
+                      >
+                        <item.icon className={cn(
+                          "w-5 h-5 transition-colors",
+                          isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 group-hover:text-indigo-600"
+                        )} />
+                        <span>{item.name}</span>
+                        {item.badge && (
+                          <span className="ml-auto bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                }
+
                 return (
                   <li key={item.name}>
-                    <Link 
+                    <Link
                       href={item.href}
                       className={cn(
                         "flex items-center gap-3 px-2 py-2.5 rounded-lg transition-colors group text-sm font-medium",
-                        isActive 
-                          ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400" 
+                        isActive
+                          ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"
                           : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                       )}
                     >

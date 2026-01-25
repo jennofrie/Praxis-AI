@@ -9,7 +9,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { GeminiClient, SYSTEM_PROMPTS } from "../_shared/gemini.ts";
+import { GeminiClient, SYSTEM_PROMPTS, AIProvider } from "../_shared/gemini.ts";
 
 interface DomainObservation {
   domain: string;
@@ -24,6 +24,9 @@ interface FCAPipelineRequest {
   diagnosis?: string;
   domains?: DomainObservation[];
   goals?: string[];
+  // AI Provider settings
+  provider?: AIProvider;
+  enableFallback?: boolean;
 }
 
 const gemini = new GeminiClient();
@@ -38,6 +41,11 @@ Deno.serve(async (req: Request) => {
     const body: FCAPipelineRequest = await req.json();
     console.log('[FCA Pipeline] Action:', body.action);
 
+    // Get provider settings from request
+    const preferredProvider: AIProvider = body.provider || 'gemini';
+    const enableFallback = body.enableFallback !== false;
+    console.log('[FCA Pipeline] Provider:', preferredProvider, '| Fallback:', enableFallback);
+
     if (body.action === 'map-domains') {
       if (!body.notes) {
         return new Response(
@@ -47,11 +55,13 @@ Deno.serve(async (req: Request) => {
       }
 
       console.log('[FCA Pipeline] Mapping domains from notes...');
-      const result = await gemini.generate(
+      const result = await gemini.generateWithProviderFallback(
         body.notes,
         SYSTEM_PROMPTS.domainMapping,
         'pro',
-        true
+        true,
+        preferredProvider,
+        enableFallback
       );
 
       if (!result.success) {
@@ -68,6 +78,7 @@ Deno.serve(async (req: Request) => {
           success: true,
           data: result.data,
           model: result.model,
+          provider: result.provider,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -95,11 +106,13 @@ ${body.goals ? `**Goals:**\n${body.goals.map((g, i) => `${i + 1}. ${g}`).join('\
 `;
 
       console.log('[FCA Pipeline] Generating narrative...');
-      const result = await gemini.generate(
+      const result = await gemini.generateWithProviderFallback(
         contextPrompt,
         SYSTEM_PROMPTS.fcaPipeline,
         'pro',
-        false
+        false,
+        preferredProvider,
+        enableFallback
       );
 
       if (!result.success) {
@@ -116,6 +129,7 @@ ${body.goals ? `**Goals:**\n${body.goals.map((g, i) => `${i + 1}. ${g}`).join('\
           success: true,
           narrative: result.data,
           model: result.model,
+          provider: result.provider,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

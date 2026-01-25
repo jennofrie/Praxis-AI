@@ -7,7 +7,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { GeminiClient, SYSTEM_PROMPTS } from "../_shared/gemini.ts";
+import { GeminiClient, SYSTEM_PROMPTS, AIProvider } from "../_shared/gemini.ts";
 
 interface ATOption {
   name: string;
@@ -31,6 +31,9 @@ interface ATJustificationRequest {
   selectedItem: ATOption;
   alternatives: ATOption[];
   goals?: string[];
+  // AI Provider settings
+  provider?: AIProvider;
+  enableFallback?: boolean;
 }
 
 const gemini = new GeminiClient();
@@ -44,6 +47,11 @@ Deno.serve(async (req: Request) => {
   try {
     const body: ATJustificationRequest = await req.json();
     console.log('[AT Justification] Processing request...');
+
+    // Get provider settings from request
+    const preferredProvider: AIProvider = body.provider || 'gemini';
+    const enableFallback = body.enableFallback !== false;
+    console.log('[AT Justification] Provider:', preferredProvider, '| Fallback:', enableFallback);
 
     if (!body.functionalNeed || !body.selectedItem) {
       return new Response(
@@ -123,11 +131,13 @@ ${body.goals.map((g, i) => `${i + 1}. ${g}`).join('\n')}` : ''}
 `;
 
     console.log('[AT Justification] Generating justification narrative...');
-    const result = await gemini.generate(
+    const result = await gemini.generateWithProviderFallback(
       contextPrompt,
       SYSTEM_PROMPTS.atJustification,
       'pro',
-      false
+      false,
+      preferredProvider,
+      enableFallback
     );
 
     if (!result.success) {
@@ -151,6 +161,7 @@ ${body.goals.map((g, i) => `${i + 1}. ${g}`).join('\n')}` : ''}
             : 'Consider reviewing: an alternative scored higher',
         },
         model: result.model,
+        provider: result.provider,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

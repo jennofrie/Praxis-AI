@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FCASessionData, NDIS_DOMAINS } from "./types";
 import { Sparkles, Check, AlertTriangle, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 
@@ -9,10 +9,12 @@ interface Props {
   updateData: (d: FCASessionData) => void;
   next: () => void;
   back: () => void;
+  initialNotes?: string;
+  autoAnalyze?: boolean;
 }
 
-export function DomainMapper({ data, updateData, next, back }: Props) {
-  const [rawNotes, setRawNotes] = useState("");
+export function DomainMapper({ data, updateData, next, back, initialNotes, autoAnalyze }: Props) {
+  const [rawNotes, setRawNotes] = useState(data.rawNotes ?? initialNotes ?? "");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const handleAnalyze = async () => {
@@ -22,11 +24,11 @@ export function DomainMapper({ data, updateData, next, back }: Props) {
       const response = await fetch('/api/ai/fca-pipeline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'map-domains',
-          notes: rawNotes 
-        }),
-      });
+         body: JSON.stringify({ 
+           action: 'map-domains',
+           notes: rawNotes 
+         }),
+       });
       
       const result = await response.json();
       
@@ -48,6 +50,7 @@ export function DomainMapper({ data, updateData, next, back }: Props) {
       
       updateData({
         ...data,
+        rawNotes,
         observations
       });
     } catch (error) {
@@ -56,6 +59,15 @@ export function DomainMapper({ data, updateData, next, back }: Props) {
       setIsAnalyzing(false);
     }
   };
+
+  useEffect(() => {
+    if (!autoAnalyze) return;
+    if (isAnalyzing) return;
+    if (!rawNotes.trim()) return;
+    if (Object.keys(data.observations).length > 0) return;
+    void handleAnalyze();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAnalyze]);
 
   const domainCompleteness = NDIS_DOMAINS.map(d => ({
     name: d,
@@ -80,7 +92,11 @@ export function DomainMapper({ data, updateData, next, back }: Props) {
           className="flex-1 w-full p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 resize-none focus:ring-2 focus:ring-indigo-600 outline-none text-sm leading-relaxed min-h-[400px]"
           placeholder="e.g. Participant arrived on time. Observed using a walking stick. Stated that 'cooking is getting harder because I can't stand for long'. Demonstrated making a tea..."
           value={rawNotes}
-          onChange={(e) => setRawNotes(e.target.value)}
+          onChange={(e) => {
+            const nextNotes = e.target.value;
+            setRawNotes(nextNotes);
+            updateData({ ...data, rawNotes: nextNotes });
+          }}
         />
 
         <button

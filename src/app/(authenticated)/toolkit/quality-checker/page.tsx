@@ -6,8 +6,7 @@ import {
   ChevronRight, 
   FileSearch, 
   Sparkles, 
-  AlertTriangle, 
-  CheckCircle, 
+  AlertTriangle,
   Loader2,
   AlertCircle,
   Info,
@@ -103,12 +102,6 @@ export default function QualityChecker() {
     if (score >= 75) return "text-emerald-600";
     if (score >= 50) return "text-amber-600";
     return "text-red-600";
-  };
-
-  const getScoreBg = (score: number) => {
-    if (score >= 75) return "bg-emerald-500";
-    if (score >= 50) return "bg-amber-500";
-    return "bg-red-500";
   };
 
   const getIssueIcon = (type: string) => {
