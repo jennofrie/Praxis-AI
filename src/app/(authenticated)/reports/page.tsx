@@ -24,6 +24,24 @@ import {
   getDocumentTypeLabel,
 } from "@/types/senior-planner";
 
+// Database query result types
+interface AuditRecord {
+  id: string;
+  document_type: string;
+  document_name: string | null;
+  overall_score: number;
+  status: string;
+  created_at: string;
+}
+
+interface CoCRecord {
+  id: string;
+  description: string | null;
+  confidence_score: number;
+  eligibility_verdict: string;
+  created_at: string;
+}
+
 // Combined report type for display
 interface ReportItem {
   id: string;
@@ -198,7 +216,7 @@ export default function Reports() {
       if (cocError) throw cocError;
 
       // Transform audits to report items
-      const auditItems: ReportItem[] = (audits || []).map((audit) => {
+      const auditItems: ReportItem[] = (audits || []).map((audit: AuditRecord) => {
         const participantName = extractParticipantName(audit.document_name || "Unknown");
         const statusInfo = getStatusInfo("audit", audit.status as AuditStatus);
         return {
@@ -216,14 +234,14 @@ export default function Reports() {
       });
 
       // Transform CoC assessments to report items
-      const cocItems: ReportItem[] = (cocAssessments || []).map((coc) => {
+      const cocItems: ReportItem[] = (cocAssessments || []).map((coc: CoCRecord) => {
         const participantName = extractParticipantName(coc.description || "Unknown");
         const statusInfo = getStatusInfo("coc", coc.eligibility_verdict as CoCEligibilityVerdict);
         return {
           id: coc.id,
           type: "coc" as const,
           documentType: "coc_assessment",
-          documentName: coc.description?.slice(0, 50) + (coc.description?.length > 50 ? "..." : "") || "CoC Assessment",
+          documentName: coc.description ? (coc.description.slice(0, 50) + (coc.description.length > 50 ? "..." : "")) : "CoC Assessment",
           participantName,
           participantInitials: getInitials(participantName),
           createdAt: new Date(coc.created_at),

@@ -34,6 +34,8 @@ import {
   getAuditStatusColor,
   getDocumentTypeLabel,
 } from "@/types/senior-planner";
+import { useAIProvider } from "@/components/providers/AIProviderContext";
+import { useAdmin } from "@/components/providers/AdminContext";
 import { AIProcessingButton } from "./AIProcessingButton";
 
 // Document type options
@@ -79,6 +81,9 @@ function ScoreGauge({ label, score, size = "md" }: ScoreGaugeProps) {
 }
 
 export function PlannerMode() {
+  const { provider, enableFallback } = useAIProvider();
+  const { isAdmin } = useAdmin();
+
   // Form state
   const [documentType, setDocumentType] = useState<AuditDocumentType>("functional_capacity_assessment");
   const [documentName, setDocumentName] = useState("");
@@ -122,7 +127,7 @@ export function PlannerMode() {
 
       // If more than MAX_HISTORY_ITEMS, delete the oldest ones
       if (allData && allData.length > MAX_HISTORY_ITEMS) {
-        const idsToDelete = allData.slice(MAX_HISTORY_ITEMS).map((item) => item.id);
+        const idsToDelete = allData.slice(MAX_HISTORY_ITEMS).map((item: { id: string }) => item.id);
         await supabase.from("report_audits").delete().in("id", idsToDelete);
       }
 
@@ -136,7 +141,14 @@ export function PlannerMode() {
       if (error) throw error;
 
       setHistory(
-        (data || []).map((item) => ({
+        (data || []).map((item: {
+          id: string;
+          document_type: string;
+          document_name: string;
+          overall_score: number;
+          status: string;
+          created_at: string;
+        }) => ({
           id: item.id,
           documentType: item.document_type as AuditDocumentType,
           documentName: item.document_name,
@@ -337,8 +349,8 @@ export function PlannerMode() {
           documentType,
           documentName: documentName || "Unnamed Document",
           content: documentContent,
-          provider: "gemini",  // Explicitly use Gemini API
-          enableFallback: false,  // Disable Ollama fallback
+          provider,
+          enableFallback: isAdmin ? enableFallback : false,
         }),
       });
 

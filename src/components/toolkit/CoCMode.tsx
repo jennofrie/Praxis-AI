@@ -37,6 +37,8 @@ import {
   getVerdictColor,
   getPathwayLabel,
 } from "@/types/senior-planner";
+import { useAIProvider } from "@/components/providers/AIProviderContext";
+import { useAdmin } from "@/components/providers/AdminContext";
 
 interface ConfidenceGaugeProps {
   score: number;
@@ -214,6 +216,8 @@ async function extractTextFromDOCX(file: File): Promise<string> {
 }
 
 export function CoCMode() {
+  const { provider, enableFallback } = useAIProvider();
+  const { isAdmin } = useAdmin();
   // Form state
   const [circumstances, setCircumstances] = useState("");
   const [selectedTriggers, setSelectedTriggers] = useState<CoCTriggerCategory[]>([]);
@@ -341,7 +345,7 @@ export function CoCMode() {
 
       // If more than MAX_HISTORY_ITEMS, delete the oldest ones
       if (allData && allData.length > MAX_HISTORY_ITEMS) {
-        const idsToDelete = allData.slice(MAX_HISTORY_ITEMS).map((item) => item.id);
+        const idsToDelete = allData.slice(MAX_HISTORY_ITEMS).map((item: { id: string }) => item.id);
         await supabase.from("coc_assessments").delete().in("id", idsToDelete);
       }
 
@@ -355,7 +359,14 @@ export function CoCMode() {
       if (error) throw error;
 
       setHistory(
-        (data || []).map((item) => ({
+        (data || []).map((item: {
+          id: string;
+          description: string;
+          confidence_score: number;
+          eligibility_verdict: string;
+          recommended_pathway: string;
+          created_at: string;
+        }) => ({
           id: item.id,
           description: item.description.slice(0, 50) + (item.description.length > 50 ? "..." : ""),
           confidenceScore: item.confidence_score,
@@ -507,8 +518,8 @@ export function CoCMode() {
           circumstances: fullContent,
           triggers: selectedTriggers,
           documentNames: fileName ? [fileName] : undefined,
-          provider: "gemini",
-          enableFallback: false,
+          provider,
+          enableFallback: isAdmin ? enableFallback : false,
         }),
       });
 

@@ -226,7 +226,8 @@ export default function GeneralSettings() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Gemini Option */}
                         <button
-                          onClick={() => setProvider("gemini")}
+                          onClick={() => isAdmin && setProvider("gemini")}
+                          disabled={!isAdmin}
                           className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all cursor-pointer ${
                             provider === "gemini"
                               ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
@@ -255,7 +256,8 @@ export default function GeneralSettings() {
 
                         {/* Ollama Option */}
                         <button
-                          onClick={() => setProvider("ollama")}
+                          onClick={() => isAdmin && setProvider("ollama")}
+                          disabled={!isAdmin}
                           className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all cursor-pointer ${
                             provider === "ollama"
                               ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
@@ -327,14 +329,17 @@ export default function GeneralSettings() {
                     <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-slate-900 dark:text-white">Enable Provider Fallback</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Automatically switch to alternate provider if primary fails</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          Automatically switch to alternate provider if primary fails{!isAdmin ? " (Admin only)" : ""}
+                        </span>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
                           className="sr-only peer"
                           checked={enableFallback}
-                          onChange={(e) => setEnableFallback(e.target.checked)}
+                          disabled={!isAdmin}
+                          onChange={(e) => isAdmin && setEnableFallback(e.target.checked)}
                         />
                         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-600/20 dark:peer-focus:ring-indigo-600/40 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
                       </label>

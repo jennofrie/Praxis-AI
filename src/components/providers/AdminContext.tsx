@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { UserRole } from "@/types/enums";
 import { getUserRole, hasPermission, Permission, ROLE_PERMISSIONS } from "@/config/admin";
 
@@ -79,7 +79,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (_event: AuthChangeEvent, session: Session | null) => {
         if (session?.user) {
           setUser(session.user);
           const role = getUserRole(session.user.email);

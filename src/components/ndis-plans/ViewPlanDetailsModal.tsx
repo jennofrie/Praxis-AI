@@ -14,7 +14,6 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  TrendingUp,
   FileText,
   ArrowRight,
 } from "lucide-react";
@@ -39,13 +38,6 @@ interface AIStrategy {
   timeframe: string;
   measurableOutcome: string;
   resourcesNeeded?: string[];
-}
-
-interface FundingBreakdown {
-  total: number;
-  core: number;
-  capacityBuilding: number;
-  capital: number;
 }
 
 interface NDISPlanData {
@@ -460,64 +452,66 @@ export function ViewPlanDetailsModal({ isOpen, onClose, plan }: ViewPlanDetailsM
                         )}
 
                         {/* AI Generated Strategies */}
-                        {aiStrategies[goal.id] && (
-                          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Sparkles className="w-4 h-4 text-purple-500" />
-                              <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                                AI-Generated Achievable Strategies
-                              </p>
-                            </div>
-                            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                              {/* Action Steps */}
-                              <div className="mb-3">
-                                <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2">
-                                  Recommended Action Steps
+                        {(() => {
+                          const strategy = aiStrategies[goal.id];
+                          if (!strategy) return null;
+                          return (
+                            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Sparkles className="w-4 h-4 text-purple-500" />
+                                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                                  AI-Generated Achievable Strategies
                                 </p>
-                                <ul className="space-y-2">
-                                  {aiStrategies[goal.id].actionSteps.map((step, idx) => (
-                                    <li
-                                      key={idx}
-                                      className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
-                                    >
-                                      <span className="w-5 h-5 rounded-full bg-purple-200 dark:bg-purple-800 flex items-center justify-center text-purple-700 dark:text-purple-300 text-xs font-medium shrink-0">
-                                        {idx + 1}
-                                      </span>
-                                      {step}
-                                    </li>
-                                  ))}
-                                </ul>
                               </div>
-
-                              {/* Timeframe & Outcome */}
-                              <div className="grid grid-cols-2 gap-3 mt-3">
-                                <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-2">
-                                  <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
-                                    Suggested Timeframe
+                              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                                {/* Action Steps */}
+                                <div className="mb-3">
+                                  <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2">
+                                    Recommended Action Steps
                                   </p>
-                                  <p className="text-sm text-slate-700 dark:text-slate-300">
-                                    {aiStrategies[goal.id].timeframe}
-                                  </p>
+                                  <ul className="space-y-2">
+                                    {strategy.actionSteps.map((step, idx) => (
+                                      <li
+                                        key={idx}
+                                        className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
+                                      >
+                                        <span className="w-5 h-5 rounded-full bg-purple-200 dark:bg-purple-800 flex items-center justify-center text-purple-700 dark:text-purple-300 text-xs font-medium shrink-0">
+                                          {idx + 1}
+                                        </span>
+                                        {step}
+                                      </li>
+                                    ))}
+                                  </ul>
                                 </div>
-                                <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-2">
-                                  <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
-                                    Measurable Outcome
-                                  </p>
-                                  <p className="text-sm text-slate-700 dark:text-slate-300">
-                                    {aiStrategies[goal.id].measurableOutcome}
-                                  </p>
-                                </div>
-                              </div>
 
-                              {/* Resources Needed */}
-                              {aiStrategies[goal.id].resourcesNeeded &&
-                                aiStrategies[goal.id].resourcesNeeded!.length > 0 && (
+                                {/* Timeframe & Outcome */}
+                                <div className="grid grid-cols-2 gap-3 mt-3">
+                                  <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-2">
+                                    <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
+                                      Suggested Timeframe
+                                    </p>
+                                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                                      {strategy.timeframe}
+                                    </p>
+                                  </div>
+                                  <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-2">
+                                    <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
+                                      Measurable Outcome
+                                    </p>
+                                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                                      {strategy.measurableOutcome}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Resources Needed */}
+                                {strategy.resourcesNeeded && strategy.resourcesNeeded.length > 0 && (
                                   <div className="mt-3">
                                     <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
                                       Resources/Supports Needed
                                     </p>
                                     <div className="flex flex-wrap gap-1">
-                                      {aiStrategies[goal.id].resourcesNeeded!.map((res, idx) => (
+                                      {strategy.resourcesNeeded.map((res, idx) => (
                                         <span
                                           key={idx}
                                           className="px-2 py-0.5 bg-white/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded text-xs"
@@ -528,9 +522,10 @@ export function ViewPlanDetailsModal({ isOpen, onClose, plan }: ViewPlanDetailsM
                                     </div>
                                   </div>
                                 )}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
