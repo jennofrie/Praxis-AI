@@ -10,6 +10,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **SC Toolkit Backend Infrastructure** (2026-01-28)
+  - Deployed 7 new Supabase Edge Functions for all SC Toolkit features:
+    * `synthesize-report` - Allied health report synthesis with premium/standard tiering
+    * `coc-cover-letter-generator` - CoC cover letter structured JSON generation
+    * `generate-justification` - LC-AT justification with Section 34 criteria (premium tier)
+    * `plan-management-expert` - NDIS plan management chatbot with document analysis
+    * `analyze-text` - Text-to-case-note conversion for Visual Case Notes
+    * `analyze-image` - Multimodal image-to-case-note using gemini-1.5-flash
+    * `generate-weekly-summary` - Weekly activity summary for Support Coordinators
+  - Applied database migration 009: SC Toolkit tables
+    * `synthesized_reports` - Stores Report Synthesizer outputs with template data
+    * `coc_cover_letter_history` - CoC cover letter generation history with deduplication
+    * `budgets` - NDIS budget tracking with Core/Capacity/Capital breakdown
+    * `budget_snapshots` - Point-in-time budget forecasts for comparison
+    * `plan_management_queries` - Plan Management Expert chat history
+    * `activity_logs` - User activity logging for weekly summaries
+    * `case_notes_history` - Visual Case Notes generation history (text & image)
+  - All tables configured with Row Level Security (RLS) policies
+  - Implemented user-scoped data isolation via `auth.uid()`
+  - Added indexes on `user_id` + `created_at DESC` for optimal query performance
+  - Created `updated_at` triggers for `synthesized_reports` and `budgets`
+  - Shared utility modules: `_shared/cors.ts` and `_shared/gemini.ts` for all Edge Functions
+  - Model tiering: Premium (gemini-2.5-pro), Standard (gemini-2.0-flash), Flash (gemini-2.0-flash)
+
 - **AI Processing Button Component** (2026-01-25)
   - Created reusable `AIProcessingButton` component with professional animations
   - Stage-based progress indicators showing real-time processing steps
@@ -40,6 +64,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prepared foundation for Supabase storage integration
 
 ### Changed
+- **SC Toolkit Sidebar Badge** (2026-01-28)
+  - Changed badge from "WIP" (Work in Progress) to "NEW"
+  - Reflects completion of backend infrastructure deployment
+  - All 9 SC Toolkit features now fully operational with Edge Function support
+
 - **Planner Mode (Section 34 Auditor)**
   - Replaced standard button with animated `AIProcessingButton`
   - Shows 5 processing stages: Scanning → Analyzing Section 34 → Evaluating evidence → 3-pass analysis → Generating report
@@ -297,7 +326,7 @@ Found a bug or have a feature request?
 ---
 
 **Maintained by**: JD Digital Systems Development Team
-**Last Updated**: January 25, 2026
+**Last Updated**: January 28, 2026
 
 ---
 

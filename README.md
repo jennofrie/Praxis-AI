@@ -16,7 +16,8 @@ Praxis AI (branded as **Praxis AI Platform**) is a modern, AI-powered clinical w
 - **Participant Management**: Comprehensive participant profiles, session tracking, and progress monitoring
 - **AI-Powered Reports**: Automated generation of clinical reports with confidence scoring and human review workflows
 - **NDIS Compliance**: Built-in support for NDIS plans, audits, and regulatory requirements
-- **Clinical Toolkit**: Access to specialized tools for assessments and documentation
+- **Allied Toolkit**: 8 specialized AI tools for OTs and allied health professionals
+- **SC Toolkit (NEW)**: 9 complete AI tools for NDIS Support Coordinators with full backend
 - **Dark Mode Support**: Full light/dark theme support for comfortable extended use
 - **Real-time Collaboration**: Multi-user support with role-based access control
 
@@ -40,6 +41,12 @@ Praxis AI is architected to support thousands of concurrent users while maintain
 - **Tailwind CSS 4** - Utility-first styling with custom design system
 - **Lucide React** - Modern icon library
 - **Chart.js** - Data visualization
+
+### Backend
+- **Supabase** - PostgreSQL database with Row Level Security
+- **Supabase Edge Functions** - Serverless Deno functions for AI processing
+- **Google Gemini AI** - Multi-tiered AI models (2.5 Pro, 2.0 Flash, 1.5 Flash)
+- **15 Edge Functions** - Deployed for Allied Toolkit and SC Toolkit features
 
 ### Design System
 - Custom color palette optimized for clinical workflows
@@ -82,13 +89,15 @@ Praxis-AI/
 - **Node.js** 20.x or higher
 - **npm** or **pnpm** package manager
 - Modern web browser (Chrome, Firefox, Safari, Edge)
+- **Supabase Account** - For database and Edge Functions
+- **Google Gemini API Key** - For AI features
 
 ### Installation
 
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd Praxis-AI/praxis-ai
+   cd Praxis-AI
    ```
 
 2. Install dependencies:
@@ -98,12 +107,27 @@ Praxis-AI/
    pnpm install
    ```
 
-3. Run the development server:
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Configure the following in `.env.local`:
+   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
+   - `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key (server-side only)
+   - `GEMINI_API_KEY` - Set as Edge Function secret in Supabase dashboard
+
+4. Run database migrations:
+   ```bash
+   npx supabase db push
+   ```
+
+5. Run the development server:
    ```bash
    npm run dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Building for Production
 
