@@ -26,7 +26,7 @@ const navigation = [
   { name: "Reports & Docs", href: "/reports", icon: FileText, section: "Clinical Workflow" },
   { name: "AI Assistant", href: "#", icon: Bot, section: "Clinical Workflow", badge: "NEW", isAIAssistant: true },
   { name: "Allied Toolkit", href: "/toolkit", icon: Briefcase, section: "Clinical Workflow", badge: "NEW" },
-  { name: "SC Toolkit", href: "/sc-toolkit", icon: Briefcase, section: "Clinical Workflow", badge: "WIP" },
+  { name: "SC Toolkit", href: "/sc-toolkit", icon: Briefcase, section: "Clinical Workflow", badge: "NEW" },
   { name: "Audits", href: "/audits", icon: ShieldCheck, section: "Compliance" },
   { name: "NDIS Plans", href: "/ndis-plans", icon: ScrollText, section: "Compliance" },
   { name: "General", href: "/settings/general", icon: Settings, section: "Settings" },
