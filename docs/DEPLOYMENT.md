@@ -339,39 +339,61 @@ For self-hosted staging on AWS:
 
 ### Migration Strategy
 
-We use Prisma for database migrations with the following workflow:
+Praxis AI uses **Supabase CLI** for database migrations. Migrations live in `supabase/migrations/` and are numbered sequentially (`NNN_description.sql`).
 
-1. **Development**: Create and test migrations locally
-2. **Staging**: Apply migrations to staging database
-3. **Production**: Apply migrations with rollback plan
+| Migration | Description |
+|-----------|-------------|
+| 001–006 | Core schema: profiles, participants, sessions, reports, audit_logs, ndis_plans |
+| 007 | AI usage tracking (`ai_usage` table) |
+| 008–010 | Reports, synthesized reports, additional indexes |
+| 011 | Presence system: `profiles.last_seen`, `profiles.organization_details`, `ai_rate_limits` table |
 
-### Creating Migrations
+### Creating a New Migration
 
 ```bash
-# Create new migration
-npm run db:migrate:dev -- --name add_participant_notes
+# Create a new migration file
+npx supabase migration new descriptive_name
 
-# Generate Prisma Client
-npm run db:generate
+# Edit the generated file in supabase/migrations/
 ```
 
 ### Applying Migrations
 
-#### Development
+#### Remote (linked project)
 ```bash
-npm run db:migrate:dev
+# Push all pending migrations to remote Supabase
+npx supabase db push
+
+# Push including migrations that failed history check
+npx supabase db push --include-all
+
+# Repair migration history if version conflict occurs
+npx supabase migration repair <version> --status reverted
+npx supabase migration repair <version> --status applied
 ```
 
-#### Staging/Production
+#### Seeding Data
 ```bash
-# Review migration
-npm run db:migrate:status
+# The seed.sql file is idempotent — checks for existing data before inserting
+# Execute via Supabase Management API or SQL editor in dashboard:
+# Dashboard → SQL Editor → paste contents of supabase/seed.sql → Run
+```
 
-# Apply migration
-npm run db:migrate:deploy
+### Migration Best Practices
 
-# Verify
-npm run db:migrate:status
+```sql
+-- ✅ GOOD: Add nullable column
+ALTER TABLE participants
+ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+
+-- ✅ GOOD: Add column with default
+ALTER TABLE participants
+ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
+
+-- ✅ GOOD: Always add RLS policies for new tables
+ALTER TABLE new_table ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users access own rows" ON new_table
+  FOR ALL USING (auth.uid() = user_id);
 ```
 
 ### Migration Best Practices
@@ -433,60 +455,27 @@ npm run db:migrate:rollback -- --to 20260125_add_participant_notes
 
 ### Required Variables
 
-#### Application
-```bash
-# Node Environment
-NODE_ENV=production
+All environment variables live in `.env` (never commit this file). See `.env.example` for the full template.
 
-# Application URL
-NEXT_PUBLIC_APP_URL=https://app.praxis-ai.com
-NEXT_PUBLIC_API_URL=https://api.praxis-ai.com
+#### Supabase (required)
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-#### Database
+#### AI Services (required for AI assistant)
 ```bash
-# PostgreSQL
-DATABASE_URL=postgresql://user:password@host:5432/database?schema=public
-
-# Connection Pool
-DATABASE_POOL_MIN=2
-DATABASE_POOL_MAX=10
+GOOGLE_GENERATIVE_AI_API_KEY=your-gemini-api-key
+# Model tier: Gemini 2.5 Pro (primary) → 2.0 Flash (fallback)
 ```
 
-#### Authentication
+#### Optional (future)
 ```bash
-# JWT Secrets
-JWT_SECRET=your-256-bit-secret
-JWT_REFRESH_SECRET=your-256-bit-refresh-secret
-JWT_EXPIRY=3600
-JWT_REFRESH_EXPIRY=604800
-```
-
-#### AI Services
-```bash
-# Claude API
-ANTHROPIC_API_KEY=sk-ant-xxxxx
-ANTHROPIC_MODEL=claude-3-sonnet-20240229
-```
-
-#### Storage
-```bash
-# AWS S3
-AWS_REGION=ap-southeast-2
-AWS_ACCESS_KEY_ID=AKIAXXXXX
-AWS_SECRET_ACCESS_KEY=xxxxx
-S3_BUCKET=praxis-ai-prod
-```
-
-#### Monitoring
-```bash
-# Sentry
-SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
-SENTRY_ENVIRONMENT=production
-
-# Datadog
-DD_API_KEY=xxxxx
-DD_APP_KEY=xxxxx
+# Upstash Redis — if added, rate limiter uses sliding window instead of DB fallback
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 ```
 
 ### Managing Secrets
@@ -732,5 +721,5 @@ aws ecs update-service --force-new-deployment
 
 ---
 
-**Last Updated**: January 2026
+**Last Updated**: February 2026
 **Maintained by**: JD Digital Systems DevOps Team

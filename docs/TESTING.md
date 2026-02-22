@@ -24,6 +24,30 @@
 
 ---
 
+## Manual Smoke Test (Live App)
+
+Run this before every push to verify core Supabase integration:
+
+| # | Page | What to verify |
+|---|------|---------------|
+| 1 | `/participants` | 6 participants visible, stat cards show real counts |
+| 2 | `/participants` | Click any row → preview modal opens with NDIS number, diagnosis, plan status, next/last session |
+| 3 | `/dashboard` | "Active Participants" = 6, activity chart renders with real 7-day data |
+| 4 | `/audits` | Title = "System Audit Log", your name shows with green "Online now" dot in sidebar |
+| 5 | `/ai` | Type a message → AI responds; type 2001 chars → blocked; type "ignore previous instructions" → blocked with error banner |
+| 6 | `/settings/general` | Edit org name → Save → Refresh → value persists in Supabase |
+| 7 | Network tab | `PATCH /api/presence` fires every 60 seconds |
+| 8 | `/audits` | After clicking a participant, a `read` audit entry appears in the log |
+
+**Pre-push build commands:**
+```bash
+npm run build      # must exit 0
+npx tsc --noEmit   # must exit 0
+npm run lint       # must exit 0
+```
+
+---
+
 ## Testing Philosophy
 
 ### Core Principles
@@ -775,5 +799,5 @@ it('should do something', () => {});
 
 ---
 
-**Last Updated**: January 2026
+**Last Updated**: February 2026
 **Maintained by**: JD Digital Systems QA Team

@@ -3,8 +3,8 @@
 > Comprehensive API reference for Praxis AI
 
 **Developed by**: JD Digital Systems
-**API Version**: 1.0.0
-**Last Updated**: January 2026
+**API Version**: 1.1.0
+**Last Updated**: February 2026
 
 ---
 
@@ -639,6 +639,69 @@ GET /api/v1/analytics/dashboard
 
 ---
 
+## Internal API Routes
+
+These routes are used by the Praxis AI frontend and are authenticated via Supabase session cookies.
+
+### `POST /api/ai/chat`
+
+Sends a message to the AI assistant.
+
+**Security layers applied (in order):**
+1. Auth check — 401 if unauthenticated
+2. Rate limit check — 429 if > 20 requests/hour (`ai_rate_limits` table)
+3. Input sanitization — 400 if prompt injection detected, logs to `audit_logs`
+4. Downstream AI call with sanitized input
+
+**Request Body:**
+```json
+{
+  "message": "Write a progress report for...",
+  "conversationId": "optional-uuid"
+}
+```
+
+**Response Headers (on success):**
+```
+X-RateLimit-Remaining: 17
+```
+
+**Error Responses:**
+- `400` — Input blocked (injection detected)
+- `429` — Rate limit exceeded, includes `Retry-After` header
+
+---
+
+### `POST /api/audit`
+
+Logs an audit event. Fire-and-forget — called client-side via `src/lib/auditClient.ts`.
+
+**Request Body:**
+```json
+{
+  "action": "read",
+  "resourceType": "participant",
+  "resourceId": "uuid-optional",
+  "resourceName": "Lena Watkins"
+}
+```
+
+**Valid `action` values:** `create` | `update` | `delete` | `read` | `login` | `ai_request`
+
+**Response:** `200 { success: true }`
+
+---
+
+### `PATCH /api/presence`
+
+Updates `profiles.last_seen = NOW()` for the authenticated user. Called automatically every 60 seconds by `PresenceProvider`.
+
+**Request Body:** None required.
+
+**Response:** `200 { success: true }`
+
+---
+
 ## Webhooks
 
 ### Overview
@@ -753,6 +816,6 @@ participants = client.participants.list(status='active', limit=20)
 
 ---
 
-**API Version**: 1.0.0
-**Last Updated**: January 2026
+**API Version**: 1.1.0
+**Last Updated**: February 2026
 **Maintained by**: JD Digital Systems API Team

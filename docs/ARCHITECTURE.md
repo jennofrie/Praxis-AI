@@ -3,7 +3,7 @@
 > Comprehensive architectural documentation for Praxis AI
 
 **Designed by**: JD Digital Systems
-**Last Updated**: January 2026
+**Last Updated**: February 2026
 
 ---
 
@@ -134,10 +134,10 @@ Praxis AI is designed as a modern, cloud-native application with a focus on scal
 - **Deployment**: AWS RDS with Multi-AZ deployment
 
 #### 4. **AI/ML Layer**
-- **LLM Services**: Claude API (Anthropic) for report generation
-- **ML Models**: Custom models for clinical data analysis
-- **Vector Database**: Pinecone/Weaviate for semantic search
-- **Job Queue**: Bull/BullMQ for async AI processing
+- **LLM Services**: Google Gemini 2.5 Pro / 2.0 Flash (tiered fallback) for report generation
+- **Security Layer**: `src/lib/ai-security.ts` — prompt injection detection (13 patterns, 2000 char limit)
+- **Rate Limiting**: `src/lib/rate-limit.ts` — 20 requests/hour per user via `ai_rate_limits` table
+- **Audit Logging**: Every AI request logged to `audit_logs` via `POST /api/audit`
 
 #### 5. **Storage Layer**
 - **File Storage**: AWS S3 for documents, images, reports
@@ -177,18 +177,18 @@ System Settings
 
 ### Key Tables
 
-#### Users
+#### Profiles (extends Supabase auth.users)
 ```typescript
-interface User {
-  id: string;               // UUID
-  email: string;            // Unique, indexed
-  firstName: string;
-  lastName: string;
-  role: 'admin' | 'clinician' | 'viewer';
-  organizationId: string;   // Foreign key
-  createdAt: Date;
-  updatedAt: Date;
-  lastLoginAt: Date | null;
+interface Profile {
+  id: string;                        // UUID — matches auth.users.id
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  preferences: ProfilePreferences;   // JSONB — ai_provider, prompts, etc.
+  organization_details: object;      // JSONB — org name, ABN, address
+  last_seen: string | null;          // TIMESTAMPTZ — updated by PresenceProvider
+  created_at: string;
+  updated_at: string;
 }
 ```
 
@@ -196,16 +196,46 @@ interface User {
 ```typescript
 interface Participant {
   id: string;               // UUID
-  organizationId: string;   // Multi-tenancy
-  firstName: string;
-  lastName: string;
-  dateOfBirth: Date;
-  ndisNumber: string;       // Unique, indexed, encrypted
+  user_id: string;          // FK → profiles.id (RLS scopes to owner)
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  ndis_number: string;      // Unique per user
+  primary_diagnosis: string | null;
   status: 'active' | 'inactive' | 'pending';
-  assignedClinician: string; // Foreign key to Users
-  createdAt: Date;
-  updatedAt: Date;
+  ai_consent: boolean;
+  created_at: string;
+  updated_at: string;
 }
+```
+
+#### NDIS Plans
+```typescript
+interface NDISPlan {
+  id: string;
+  participant_id: string;   // FK → participants.id
+  plan_number: string;
+  start_date: string;       // date
+  end_date: string;         // date
+  plan_type: 'agency' | 'plan-managed' | 'self-managed' | 'combination';
+  total_budget: number;
+  core_budget: number | null;
+  capacity_building_budget: number | null;
+  capital_budget: number | null;
+  goals: object | null;     // JSONB
+  status: 'active' | 'expired' | 'under-review';
+}
+```
+
+#### AI Rate Limits (migration 011)
+```typescript
+interface AIRateLimit {
+  id: string;
+  user_id: string;          // FK → auth.users.id
+  created_at: string;       // Used for sliding window count
+}
+// RLS: users can only insert/select their own rows
+// Rate limit: 20 entries per user per hour
 ```
 
 #### Reports
@@ -460,10 +490,16 @@ async function generateReport(participantId: string, type: ReportType) {
 - **Account Lockout**: After 5 failed attempts
 
 #### 5. Audit & Compliance
-- **Audit Logging**: All data access and modifications logged
+- **Audit Logging**: All data access and modifications logged to `audit_logs` table
+- **Client-side logging**: Fire-and-forget via `src/lib/auditClient.ts` → `POST /api/audit`
 - **Log Retention**: 7 years for compliance
-- **Privacy**: GDPR/Australian Privacy Principles compliance
+- **Privacy**: Australian Privacy Principles compliance
 - **NDIS Compliance**: Quality and Safeguards Commission requirements
+
+#### 6. Presence System
+- **PresenceProvider**: React component wrapping authenticated layout — pings `PATCH /api/presence` every 60s
+- **last_seen column**: Added to `profiles` in migration 011
+- **Active Sessions panel** on Audits page: online (< 5 min), idle (5–15 min), offline (> 15 min)
 
 ---
 
@@ -682,5 +718,5 @@ Architecture changes require:
 ---
 
 **Maintained by**: JD Digital Systems Architecture Team
-**Document Version**: 1.0.0
-**Last Updated**: January 2026
+**Document Version**: 1.1.0
+**Last Updated**: February 2026
