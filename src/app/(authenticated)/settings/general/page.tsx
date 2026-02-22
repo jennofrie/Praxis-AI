@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Badge, ChevronRight, Server, Database, Brain, Sun, Moon, Cloud, HardDrive, RefreshCw, CheckCircle, XCircle, Loader2, Shield, FileText, Lock, Users, AlertTriangle, Plus, X, Sparkles, LogOut, User } from "lucide-react";
@@ -50,16 +50,17 @@ export default function GeneralSettings() {
   const [promptValues, setPromptValues] = useState<Record<string, string>>({});
 
   // Sync org form when profile loads
-  useState(() => {
+  useEffect(() => {
     if (profile?.organization_details) {
+      const details = profile.organization_details as Record<string, string>;
       setOrgForm({
-        company_name: (profile.organization_details as any).company_name ?? "",
-        abn: (profile.organization_details as any).abn ?? "",
-        address: (profile.organization_details as any).address ?? "",
-        contact_email: (profile.organization_details as any).contact_email ?? "",
+        company_name: details.company_name ?? "",
+        abn: details.abn ?? "",
+        address: details.address ?? "",
+        contact_email: details.contact_email ?? "",
       });
     }
-  });
+  }, [profile]);
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -562,9 +563,9 @@ function Tag({ children }: { children: React.ReactNode }) {
 
 function StatusRow({ icon: Icon, label, status = "operational" }: { icon: React.ElementType; label: string; status?: "operational" | "offline" | "unknown" }) {
   const statusConfig = {
-    operational: { color: "emerald", text: "Operational" },
-    offline: { color: "red", text: "Offline" },
-    unknown: { color: "amber", text: "Unknown" },
+    operational: { dot: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400", label: "Operational" },
+    offline: { dot: "bg-red-500", text: "text-red-700 dark:text-red-400", label: "Offline" },
+    unknown: { dot: "bg-amber-500", text: "text-amber-700 dark:text-amber-400", label: "Unknown" },
   };
   const config = statusConfig[status];
   return (
@@ -574,8 +575,8 @@ function StatusRow({ icon: Icon, label, status = "operational" }: { icon: React.
         <span className="text-sm font-medium text-slate-900 dark:text-slate-200">{label}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full bg-${config.color}-500`}></span>
-        <span className={`text-xs font-medium text-${config.color}-700 dark:text-${config.color}-400`}>{config.text}</span>
+        <span className={`h-2 w-2 rounded-full ${config.dot}`}></span>
+        <span className={`text-xs font-medium ${config.text}`}>{config.label}</span>
       </div>
     </div>
   );

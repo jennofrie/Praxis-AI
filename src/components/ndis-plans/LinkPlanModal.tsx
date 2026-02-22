@@ -57,7 +57,8 @@ interface ExtractedPlanData {
 
 interface ExistingParticipant {
   id: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
   ndis_number: string;
 }
 
@@ -109,8 +110,8 @@ export function LinkPlanModal({ isOpen, onClose, onSuccess }: LinkPlanModalProps
     const loadParticipants = async () => {
       const { data, error } = await supabase
         .from('participants')
-        .select('id, full_name, ndis_number')
-        .order('full_name');
+        .select('id, first_name, last_name, ndis_number')
+        .order('first_name');
 
       if (!error && data) {
         setExistingParticipants(data);
@@ -244,15 +245,30 @@ export function LinkPlanModal({ isOpen, onClose, onSuccess }: LinkPlanModalProps
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Guard against trigger failure at signup: ensure a profile row exists
+      // before inserting a participant (participants.user_id FK → profiles.id)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(
+          { id: user.id, email: user.email! },
+          { onConflict: 'id', ignoreDuplicates: true }
+        );
+      if (profileError) throw profileError;
+
       let participantId = selectedParticipantId;
 
       // Create new participant if needed
       if (linkMode === 'new') {
+        const nameParts = participantName.trim().split(/\s+/);
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
         const { data: newParticipant, error: participantError } = await supabase
           .from('participants')
           .insert({
             user_id: user.id,
-            full_name: participantName,
+            first_name: firstName,
+            last_name: lastName,
             ndis_number: ndisNumber,
             status: 'active',
           })
@@ -290,7 +306,7 @@ export function LinkPlanModal({ isOpen, onClose, onSuccess }: LinkPlanModalProps
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Save error:', err);
+      console.error('Save error:', JSON.stringify(err), err);
       setError(err instanceof Error ? err.message : 'Failed to save plan');
     } finally {
       setIsSaving(false);
@@ -309,10 +325,11 @@ export function LinkPlanModal({ isOpen, onClose, onSuccess }: LinkPlanModalProps
     });
   };
 
-  const filteredParticipants = existingParticipants.filter(p =>
-    p.full_name.toLowerCase().includes(participantSearch.toLowerCase()) ||
-    p.ndis_number.includes(participantSearch)
-  );
+  const filteredParticipants = existingParticipants.filter(p => {
+    const fullName = `${p.first_name} ${p.last_name}`.toLowerCase();
+    return fullName.includes(participantSearch.toLowerCase()) ||
+      p.ndis_number.includes(participantSearch);
+  });
 
   if (!isOpen) return null;
 
@@ -508,14 +525,14 @@ export function LinkPlanModal({ isOpen, onClose, onSuccess }: LinkPlanModalProps
                             key={p.id}
                             onClick={() => {
                               setSelectedParticipantId(p.id);
-                              setParticipantSearch(p.full_name);
+                              setParticipantSearch(`${p.first_name} ${p.last_name}`.trim());
                               setShowParticipantDropdown(false);
                             }}
                             className={`w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 ${
                               selectedParticipantId === p.id ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''
                             }`}
                           >
-                            <p className="font-medium text-slate-900 dark:text-white">{p.full_name}</p>
+                            <p className="font-medium text-slate-900 dark:text-white">{`${p.first_name} ${p.last_name}`.trim()}</p>
                             <p className="text-sm text-slate-500">NDIS #{p.ndis_number}</p>
                           </button>
                         ))}

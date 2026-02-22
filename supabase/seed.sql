@@ -33,14 +33,14 @@ BEGIN
     (v_p4, v_user_id, '5564229104', 'Jordan', 'Price', '1998-05-30', 'ADHD and Developmental Coordination Disorder', 'active', true),
     (v_p5, v_user_id, '9928110205', 'Priya', 'Sharma', '1978-09-12', 'Spinal Cord Injury', 'active', true);
 
-  -- Insert NDIS plans
-  INSERT INTO ndis_plans (participant_id, user_id, plan_number, plan_start_date, plan_end_date, total_budget, funding_type, status)
+  -- Insert NDIS plans (columns: start_date, end_date, plan_type per actual schema)
+  INSERT INTO ndis_plans (participant_id, plan_number, start_date, end_date, total_budget, plan_type, status)
   VALUES
-    (v_p1, v_user_id, 'PLAN-001-LW', NOW() - INTERVAL '6 months', NOW() + INTERVAL '6 months', 52000.00, 'plan-managed', 'active'),
-    (v_p2, v_user_id, 'PLAN-002-MN', NOW() - INTERVAL '8 months', NOW() + INTERVAL '4 months', 85000.00, 'agency-managed', 'active'),
-    (v_p3, v_user_id, 'PLAN-003-AO', NOW() - INTERVAL '3 months', NOW() + INTERVAL '9 months', 72000.00, 'plan-managed', 'active'),
-    (v_p4, v_user_id, 'PLAN-004-JP', NOW() - INTERVAL '10 months', NOW() + INTERVAL '2 months', 28000.00, 'self-managed', 'active'),
-    (v_p5, v_user_id, 'PLAN-005-PS', NOW() - INTERVAL '5 months', NOW() + INTERVAL '7 months', 115000.00, 'plan-managed', 'active');
+    (v_p1, 'PLAN-001-LW', (NOW() - INTERVAL '6 months')::date, (NOW() + INTERVAL '6 months')::date, 52000.00, 'plan-managed', 'active'),
+    (v_p2, 'PLAN-002-MN', (NOW() - INTERVAL '8 months')::date, (NOW() + INTERVAL '4 months')::date, 85000.00, 'agency', 'under-review'),
+    (v_p3, 'PLAN-003-AO', (NOW() - INTERVAL '3 months')::date, (NOW() + INTERVAL '9 months')::date, 72000.00, 'plan-managed', 'active'),
+    (v_p4, 'PLAN-004-JP', (NOW() - INTERVAL '10 months')::date, (NOW() + INTERVAL '2 months')::date, 28000.00, 'self-managed', 'active'),
+    (v_p5, 'PLAN-005-PS', (NOW() - INTERVAL '5 months')::date, (NOW() + INTERVAL '7 months')::date, 115000.00, 'plan-managed', 'active');
 
   -- Insert sessions: 2 completed + 1 scheduled per participant
   INSERT INTO sessions (participant_id, clinician_id, session_date, session_type, duration_minutes, status, billable, raw_notes)
