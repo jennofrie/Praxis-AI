@@ -7,12 +7,10 @@
 import { jsPDF } from 'jspdf';
 import type {
   AuditStatus,
-  AuditResult,
   StrengthItem,
   ImprovementItem,
   RedFlagItem,
   LanguageFix,
-  MainstreamInterfaceCheck,
   SeniorPlannerPDFOptions,
   CoCPDFOptions,
   PDFExportResult,
@@ -431,7 +429,7 @@ export function generateSeniorPlannerPDF(options: SeniorPlannerPDFOptions): PDFE
   for (let i = 0; i < scoreItems.length; i++) {
     const col = i < 3 ? col1X : col2X;
     const row = i < 3 ? gaugeY + (i * 13) : gaugeY + ((i - 3) * 13);
-    drawScoreGauge(doc, scoreItems[i].label, scoreItems[i].score, col, row, gaugeW);
+    drawScoreGauge(doc, scoreItems[i]!.label, scoreItems[i]!.score, col, row, gaugeW);
   }
 
   y = scoreBoxY + scoreBoxH + 6;
@@ -766,7 +764,7 @@ export function generateSeniorPlannerPDF(options: SeniorPlannerPDFOptions): PDFE
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(...COLORS.text);
-      const qLines = doc.splitTextToSize(q, CONTENT_W - 18);
+      const qLines = doc.splitTextToSize(q ?? '', CONTENT_W - 18);
       doc.text(qLines, MARGIN.left + 12, y + 2);
       y += qLines.length * 4 + 3;
     }
@@ -792,7 +790,8 @@ export function generateSeniorPlannerPDF(options: SeniorPlannerPDFOptions): PDFE
       const gx = MARGIN.left + 3 + i * (gridW + 3);
 
       // Box
-      const boxColor = risks[i].active ? COLORS.lightRed : COLORS.lightGreen;
+      const risk = risks[i]!;
+      const boxColor = risk.active ? COLORS.lightRed : COLORS.lightGreen;
       doc.setFillColor(...boxColor);
       doc.roundedRect(gx, y, gridW, 12, 2, 2, 'F');
 
@@ -800,11 +799,11 @@ export function generateSeniorPlannerPDF(options: SeniorPlannerPDFOptions): PDFE
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7);
       doc.setTextColor(...COLORS.text);
-      doc.text(risks[i].label, gx + gridW / 2, y + 5, { align: 'center' });
+      doc.text(risk.label, gx + gridW / 2, y + 5, { align: 'center' });
 
       // YES/NO
-      const statusText = risks[i].active ? 'RISK' : 'CLEAR';
-      const stColor = risks[i].active ? COLORS.danger : COLORS.success;
+      const statusText = risk.active ? 'RISK' : 'CLEAR';
+      const stColor = risk.active ? COLORS.danger : COLORS.success;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
       doc.setTextColor(...stColor);
@@ -941,20 +940,6 @@ function addParagraph(doc: jsPDF, text: string, y: number): number {
   return y + lines.length * 5;
 }
 
-function addBulletList(doc: jsPDF, items: string[], y: number): number {
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...COLORS.text);
-
-  for (const item of items) {
-    const lines = doc.splitTextToSize(item, CONTENT_W - 10);
-    doc.text('\u2022', MARGIN.left, y);
-    doc.text(lines, MARGIN.left + 6, y);
-    y += lines.length * 5 + 2;
-  }
-
-  return y;
-}
 
 function checkPageBreak(doc: jsPDF, y: number, requiredSpace: number = 40): number {
   if (y + requiredSpace > 280) {

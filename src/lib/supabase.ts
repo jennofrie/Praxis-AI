@@ -31,6 +31,15 @@ export function createServiceRoleClient() {
 }
 
 // Type definitions for database tables
+export interface ProfilePreferences {
+  theme?: 'light' | 'dark' | 'system';
+  aiModel?: string;
+  ai_provider?: string;
+  ndis_provider_number?: string;
+  registration_groups?: string[];
+  custom_prompts?: Record<string, string>;
+}
+
 export interface Profile {
   id: string;
   email: string;
@@ -39,10 +48,9 @@ export interface Profile {
   role: 'clinician' | 'planner' | 'admin';
   role_title?: string | null;
   organization: string | null;
-  preferences: {
-    theme: 'light' | 'dark' | 'system';
-    aiModel: string;
-  };
+  organization_details?: Record<string, string> | null;
+  last_seen?: string | null;
+  preferences: ProfilePreferences;
   created_at: string;
   updated_at: string;
 }

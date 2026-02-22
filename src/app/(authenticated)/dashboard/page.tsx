@@ -1,83 +1,200 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/layout/Header";
 import { ActivityChart } from "@/components/dashboard/ActivityChart";
-import { Users, Sparkles, Clock, CheckCircle, TrendingUp, AlertTriangle, MoreHorizontal, ArrowUp, Filter, Download } from "lucide-react";
+import { createBrowserClient } from "@/lib/supabase";
+import {
+  Users, Sparkles, Clock, CheckCircle, TrendingUp, AlertTriangle,
+  MoreHorizontal, Filter, Download, Loader2,
+} from "lucide-react";
+
+interface DashboardMetrics {
+  activeParticipants: number;
+  aiTasksToday: number;
+  billableHoursWeek: number;
+  pendingApprovals: number;
+}
+
+interface ChartData {
+  labels: string[];
+  sessionCounts: number[];
+}
+
+interface RecentReport {
+  id: string;
+  title: string;
+  report_type: string;
+  status: string;
+  created_at: string;
+  participantName: string;
+}
+
+function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
 
 export default function Dashboard() {
+  const supabase = createBrowserClient();
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    activeParticipants: 0,
+    aiTasksToday: 0,
+    billableHoursWeek: 0,
+    pendingApprovals: 0,
+  });
+  const [chartData, setChartData] = useState<ChartData>({ labels: [], sessionCounts: [] });
+  const [recentReports, setRecentReports] = useState<RecentReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [chartLoading, setChartLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const weekStart = new Date(now.getTime() - 7 * 86_400_000).toISOString();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000);
+
+    try {
+      // Parallel metric queries
+      const [participantsRes, aiUsageRes, sessionsRes, approvalsRes] = await Promise.all([
+        supabase.from("participants").select("*", { count: "exact", head: true }).eq("status", "active"),
+        supabase.from("ai_usage").select("*", { count: "exact", head: true }).gte("created_at", todayStart),
+        supabase.from("sessions")
+          .select("duration_minutes")
+          .eq("status", "completed")
+          .eq("billable", true)
+          .gte("session_date", weekStart),
+        supabase.from("reports").select("*", { count: "exact", head: true }).eq("status", "review"),
+      ]);
+
+      const billableMinutes = (sessionsRes.data ?? []).reduce(
+        (sum: number, s: any) => sum + (s.duration_minutes ?? 0),
+        0
+      );
+
+      setMetrics({
+        activeParticipants: participantsRes.count ?? 0,
+        aiTasksToday: aiUsageRes.count ?? 0,
+        billableHoursWeek: Math.round((billableMinutes / 60) * 10) / 10,
+        pendingApprovals: approvalsRes.count ?? 0,
+      });
+
+      // Chart data — last 7 days
+      const { data: sessionDates } = await supabase
+        .from("sessions")
+        .select("session_date")
+        .eq("status", "completed")
+        .gte("session_date", sevenDaysAgo.toISOString())
+        .lte("session_date", now.toISOString());
+
+      // Build labels for last 7 days
+      const dayLabels: string[] = [];
+      const dayCounts: number[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const day = new Date(now.getTime() - i * 86_400_000);
+        dayLabels.push(day.toLocaleDateString("en-AU", { weekday: "short" }));
+        const dayStr = day.toISOString().substring(0, 10);
+        const count = (sessionDates ?? []).filter((s: any) =>
+          s.session_date.startsWith(dayStr)
+        ).length;
+        dayCounts.push(count);
+      }
+      setChartData({ labels: dayLabels, sessionCounts: dayCounts });
+      setChartLoading(false);
+
+      // Recent reports
+      const { data: reports } = await supabase
+        .from("reports")
+        .select("id, title, report_type, status, created_at, participants(first_name, last_name)")
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (reports) {
+        const formatted: RecentReport[] = reports.map((r: any) => ({
+          id: r.id,
+          title: r.title,
+          report_type: r.report_type,
+          status: r.status,
+          created_at: r.created_at,
+          participantName: r.participants
+            ? `${r.participants.first_name} ${r.participants.last_name}`
+            : "Unknown",
+        }));
+        setRecentReports(formatted);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
   return (
     <>
       <Header title="Dashboard" />
       <div className="flex-1 overflow-y-auto p-6 lg:p-8">
+        {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Stat Cards */}
-          <StatCard 
-            title="Active Participants" 
-            value="127" 
-            trend="+12%" 
-            trendLabel="vs last month" 
-            icon={Users} 
-            iconColor="text-orange-600" 
+          <StatCard
+            title="Active Participants"
+            value={isLoading ? "—" : String(metrics.activeParticipants)}
+            trend="vs last month"
+            icon={Users}
+            iconColor="text-orange-600"
             iconBg="bg-orange-100 dark:bg-orange-900/30"
-            trendColor="text-green-600"
+            isLoading={isLoading}
           />
-          <StatCard 
-            title="AI Processing Queue" 
-            value="12" 
-            trend="Optimal" 
-            trendLabel="load" 
-            icon={Sparkles} 
-            iconColor="text-indigo-600" 
+          <StatCard
+            title="AI Tasks Today"
+            value={isLoading ? "—" : String(metrics.aiTasksToday)}
+            trend="requests processed"
+            icon={Sparkles}
+            iconColor="text-indigo-600"
             iconBg="bg-indigo-100 dark:bg-indigo-900/30"
-            trendIcon={CheckCircle}
-            trendColor="text-green-600"
+            isLoading={isLoading}
           />
-          <StatCard 
-            title="Billable Hours" 
-            value="34.5h" 
-            trend="-2.1%" 
-            trendLabel="vs last week" 
-            icon={Clock} 
-            iconColor="text-emerald-600" 
+          <StatCard
+            title="Billable Hours"
+            value={isLoading ? "—" : `${metrics.billableHoursWeek}h`}
+            trend="this week"
+            icon={Clock}
+            iconColor="text-emerald-600"
             iconBg="bg-emerald-100 dark:bg-emerald-900/30"
-            trendColor="text-red-500"
-            trendDown
+            isLoading={isLoading}
           />
-          <StatCard 
-            title="Pending Approvals" 
-            value="5" 
-            trend="2 urgent" 
-            trendLabel="" 
-            icon={CheckCircle} 
-            iconColor="text-purple-600" 
+          <StatCard
+            title="Pending Approvals"
+            value={isLoading ? "—" : String(metrics.pendingApprovals)}
+            trend={metrics.pendingApprovals > 0 ? "needs review" : "all clear"}
+            icon={CheckCircle}
+            iconColor="text-purple-600"
             iconBg="bg-purple-100 dark:bg-purple-900/30"
-            trendIcon={AlertTriangle}
-            trendColor="text-amber-500"
+            isLoading={isLoading}
+            alert={metrics.pendingApprovals > 0}
           />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Main Chart Section */}
+          {/* Chart */}
           <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Session Activity</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-2xl font-bold text-slate-900 dark:text-white">124</span>
-                  <span className="text-green-500 text-sm font-medium flex items-center">
-                    <ArrowUp className="w-4 h-4" /> 15%
+                  <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {chartLoading ? "…" : chartData.sessionCounts.reduce((a, b) => a + b, 0)}
                   </span>
-                  <span className="text-slate-500 dark:text-slate-400 text-sm">from last month</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-sm">sessions this week</span>
                 </div>
               </div>
-              <select className="bg-slate-50 dark:bg-slate-800 border-none text-sm rounded-md px-3 py-1.5 text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-600 cursor-pointer outline-none">
-                <option>Last 7 days</option>
-                <option>Last 30 days</option>
-                <option>This Quarter</option>
-              </select>
+              <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-md">Last 7 days</span>
             </div>
             <div className="h-80 w-full rounded-lg">
-              <ActivityChart />
+              <ActivityChart
+                labels={chartData.labels}
+                sessionCounts={chartData.sessionCounts}
+                isLoading={chartLoading}
+              />
             </div>
           </div>
 
@@ -92,17 +209,22 @@ export default function Dashboard() {
             <div className="flex-1 flex flex-col justify-center">
               <div className="mb-4">
                 <div className="flex justify-between items-end mb-1">
-                  <span className="text-3xl font-bold text-slate-900 dark:text-white">892</span>
-                  <span className="text-sm text-slate-500 dark:text-slate-400 mb-1">reports generated</span>
+                  <span className="text-3xl font-bold text-slate-900 dark:text-white">
+                    {isLoading ? "—" : metrics.aiTasksToday}
+                  </span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400 mb-1">tasks today</span>
                 </div>
                 <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
-                  <div className="bg-indigo-600 h-2 rounded-full" style={{ width: "85%" }}></div>
+                  <div
+                    className="bg-indigo-600 h-2 rounded-full transition-all duration-700"
+                    style={{ width: `${Math.min(100, (metrics.aiTasksToday / 20) * 100)}%` }}
+                  />
                 </div>
               </div>
               <div className="space-y-4 mt-2">
-                <StatusItem label="Session Notes" value="65%" color="bg-indigo-500" />
-                <StatusItem label="Assessments" value="25%" color="bg-purple-500" />
-                <StatusItem label="NDIS Plans" value="10%" color="bg-orange-400" />
+                <StatusItem label="Chat requests" value="AI Chat" color="bg-indigo-500" />
+                <StatusItem label="Reports generated" value="Reports" color="bg-purple-500" />
+                <StatusItem label="Toolkit tasks" value="Toolkit" color="bg-orange-400" />
               </div>
             </div>
           </div>
@@ -113,11 +235,6 @@ export default function Dashboard() {
           <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Reports</h3>
-              <div className="hidden sm:flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1">
-                <button className="px-3 py-1 bg-white dark:bg-slate-700 shadow-sm rounded-md text-xs font-medium text-slate-900 dark:text-white">All</button>
-                <button className="px-3 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Drafts</button>
-                <button className="px-3 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Completed</button>
-              </div>
             </div>
             <div className="flex items-center gap-2">
               <button className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-md text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
@@ -129,24 +246,33 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50/50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                  <th className="px-6 py-4 font-semibold">Report Type</th>
-                  <th className="px-6 py-4 font-semibold">Participant</th>
-                  <th className="px-6 py-4 font-semibold">Date Generated</th>
-                  <th className="px-6 py-4 font-semibold text-center">AI Confidence</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                  <th className="px-6 py-4 font-semibold text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
-                <TableRow type="Functional Capacity" participant="John Doe" date="Oct 24, 10:30 AM" confidence="98%" status="Under Review" statusColor="amber" />
-                <TableRow type="Session Note" participant="Mary Smith" date="Oct 23, 04:15 PM" confidence="94%" status="Approved" statusColor="green" />
-                <TableRow type="AT Assessment" participant="Alice Li" date="Oct 23, 02:00 PM" confidence="76%" status="Draft" statusColor="gray" />
-                <TableRow type="Progress Report" participant="Raj Jones" date="Oct 22, 11:45 AM" confidence="91%" status="Approved" statusColor="green" />
-              </tbody>
-            </table>
+            {isLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+              </div>
+            ) : recentReports.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 text-slate-400 text-sm">
+                <Filter className="w-8 h-8 mb-2 opacity-30" />
+                No reports yet
+              </div>
+            ) : (
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-slate-50/50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                    <th className="px-6 py-4 font-semibold">Report Type</th>
+                    <th className="px-6 py-4 font-semibold">Participant</th>
+                    <th className="px-6 py-4 font-semibold">Date Generated</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                    <th className="px-6 py-4 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                  {recentReports.map((r) => (
+                    <ReportRow key={r.id} report={r} />
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
@@ -154,77 +280,83 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ title, value, trend, trendLabel, icon: Icon, iconColor, iconBg, trendColor, trendDown, trendIcon: TrendIcon }: any) {
-  const Trend = TrendIcon || (trendDown ? TrendingUp : TrendingUp); // Simplified logic
+function StatCard({ title, value, trend, icon: Icon, iconColor, iconBg, isLoading, alert }: {
+  title: string;
+  value: string;
+  trend: string;
+  icon: React.ElementType;
+  iconColor: string;
+  iconBg: string;
+  isLoading?: boolean;
+  alert?: boolean;
+}) {
   return (
     <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col justify-between h-full">
       <div className="flex items-start justify-between mb-4">
         <div className={`w-10 h-10 rounded-full ${iconBg} flex items-center justify-center ${iconColor}`}>
           <Icon className="w-6 h-6" />
         </div>
+        {alert && <AlertTriangle className="w-4 h-4 text-amber-500" />}
       </div>
       <div>
         <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{title}</p>
-        <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{value}</h3>
-        <div className={`flex items-center gap-1 mt-2 text-sm font-medium ${trendColor}`}>
-          <Trend className={`w-4 h-4 ${trendDown ? "rotate-180" : ""}`} />
+        {isLoading ? (
+          <div className="h-9 w-16 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+        ) : (
+          <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{value}</h3>
+        )}
+        <div className="flex items-center gap-1 mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+          <TrendingUp className="w-4 h-4" />
           <span>{trend}</span>
-          <span className="text-slate-500 dark:text-slate-400 font-normal ml-1">{trendLabel}</span>
         </div>
       </div>
     </div>
   );
 }
 
-function StatusItem({ label, value, color }: { label: string, value: string, color: string }) {
+function StatusItem({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
       <div className="flex items-center gap-3">
-        <div className={`w-2 h-2 rounded-full ${color}`}></div>
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</span>
+        <div className={`w-2 h-2 rounded-full ${color}`} />
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{value}</span>
       </div>
-      <span className="text-sm font-bold text-slate-900 dark:text-white">{value}</span>
+      <span className="text-xs text-slate-500 dark:text-slate-400">{label}</span>
     </div>
   );
 }
 
-function TableRow({ type, participant, date, confidence, status, statusColor }: any) {
-  const colors: Record<string, string> = {
-    amber: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-    green: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-    gray: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
-  };
+const STATUS_STYLES: Record<string, string> = {
+  review: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  final: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+  draft: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
+  submitted: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+};
 
+function ReportRow({ report }: { report: RecentReport }) {
+  const statusLabel = report.status.charAt(0).toUpperCase() + report.status.slice(1);
   return (
     <tr className="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
-            <Filter className="w-4 h-4" /> {/* Placeholder icon */}
+            <Sparkles className="w-4 h-4" />
           </div>
-          <span className="font-medium text-slate-900 dark:text-white">{type}</span>
+          <span className="font-medium text-slate-900 dark:text-white">{report.report_type}</span>
         </div>
       </td>
       <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">
-            {participant.charAt(0)}
+            {report.participantName.charAt(0)}
           </div>
-          {participant}
+          {report.participantName}
         </div>
       </td>
-      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{date}</td>
+      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{formatDateTime(report.created_at)}</td>
       <td className="px-6 py-4">
-        <div className="flex justify-center">
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50 px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
-            {confidence}
-          </div>
-        </div>
-      </td>
-      <td className="px-6 py-4">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[statusColor]}`}>
-          {status}
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[report.status] ?? STATUS_STYLES.draft}`}>
+          {statusLabel}
         </span>
       </td>
       <td className="px-6 py-4 text-right">

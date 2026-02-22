@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,6 +11,8 @@ import {
   Tooltip,
   Legend,
   Filler,
+  type ChartData,
+  type Plugin,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
@@ -24,10 +27,54 @@ ChartJS.register(
   Filler
 );
 
-export function ActivityChart() {
+interface Props {
+  labels?: string[];
+  sessionCounts?: number[];
+  isLoading?: boolean;
+}
+
+// Gradient fill plugin — creates canvas gradient at render time
+const gradientPlugin: Plugin = {
+  id: "gradientFill",
+  beforeDatasetDraw(chart) {
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return;
+
+    chart.data.datasets.forEach((dataset: any, i) => {
+      if (!dataset._gradientApplied) {
+        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        if (i === 0) {
+          gradient.addColorStop(0, "rgba(14, 165, 233, 0.35)");
+          gradient.addColorStop(1, "rgba(14, 165, 233, 0)");
+        } else {
+          gradient.addColorStop(0, "rgba(99, 102, 241, 0.25)");
+          gradient.addColorStop(1, "rgba(99, 102, 241, 0)");
+        }
+        dataset.backgroundColor = gradient;
+        dataset._gradientApplied = true;
+      }
+    });
+  },
+};
+
+ChartJS.register(gradientPlugin);
+
+const DEFAULT_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DEFAULT_COUNTS = [0, 0, 0, 0, 0, 0, 0];
+
+export function ActivityChart({ labels, sessionCounts, isLoading }: Props) {
+  const chartRef = useRef(null);
+
+  const chartLabels = labels ?? DEFAULT_LABELS;
+  const chartData = sessionCounts ?? DEFAULT_COUNTS;
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 800,
+      easing: "easeInOutQuart" as const,
+    },
     interaction: {
       mode: "index" as const,
       intersect: false,
@@ -42,16 +89,13 @@ export function ActivityChart() {
           boxWidth: 8,
           boxHeight: 8,
           padding: 20,
-          font: {
-            size: 12,
-            family: "'Inter', sans-serif",
-          },
+          font: { size: 12, family: "'Inter', sans-serif" },
         },
       },
       tooltip: {
-        backgroundColor: "rgba(15, 23, 42, 0.9)", // slate-900
-        titleColor: "#f8fafc", // slate-50
-        bodyColor: "#e2e8f0", // slate-200
+        backgroundColor: "rgba(15, 23, 42, 0.9)",
+        titleColor: "#f8fafc",
+        bodyColor: "#e2e8f0",
         padding: 12,
         cornerRadius: 8,
         displayColors: true,
@@ -59,16 +103,10 @@ export function ActivityChart() {
     },
     scales: {
       x: {
-        grid: {
-          display: false,
-          drawBorder: false,
-        },
+        grid: { display: false },
         ticks: {
-          font: {
-            size: 11,
-            family: "'Inter', sans-serif",
-          },
-          color: "#64748b", // slate-500
+          font: { size: 11, family: "'Inter', sans-serif" },
+          color: "#64748b",
         },
       },
       y: {
@@ -76,66 +114,47 @@ export function ActivityChart() {
         display: true,
         position: "left" as const,
         grid: {
-          color: "rgba(226, 232, 240, 0.6)", // slate-200 with opacity
-          drawBorder: false,
+          color: "rgba(226, 232, 240, 0.6)",
           borderDash: [4, 4],
         },
         ticks: {
-          font: {
-            size: 11,
-            family: "'Inter', sans-serif",
-          },
-          color: "#64748b", // slate-500
-          stepSize: 20,
-        },
-        title: {
-          display: false,
-        },
-      },
-      y1: {
-        type: "linear" as const,
-        display: true,
-        position: "right" as const,
-        grid: {
-          drawOnChartArea: false, // only want the grid lines for one axis to show up
-        },
-        ticks: {
-          font: {
-            size: 11,
-            family: "'Inter', sans-serif",
-          },
-          color: "#6366f1", // indigo-500
+          font: { size: 11, family: "'Inter', sans-serif" },
+          color: "#64748b",
+          stepSize: 5,
         },
       },
     },
   };
 
-  const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-  const data = {
-    labels,
+  const data: ChartData<"line"> = {
+    labels: chartLabels,
     datasets: [
       {
-        label: "Active Sessions",
-        data: [45, 52, 38, 65, 58, 24, 30],
-        borderColor: "#0ea5e9", // sky-500
-        backgroundColor: "rgba(14, 165, 233, 0.1)",
-        tension: 0.4,
+        label: "Completed Sessions",
+        data: chartData,
+        borderColor: "#0ea5e9",
+        backgroundColor: "rgba(14, 165, 233, 0.35)", // overridden by gradient plugin
+        tension: 0.45,
         fill: true,
-        yAxisID: "y",
-      },
-      {
-        label: "AI Processing Queue",
-        data: [12, 19, 15, 28, 22, 8, 10],
-        borderColor: "#6366f1", // indigo-500
-        backgroundColor: "rgba(99, 102, 241, 0.1)",
-        borderDash: [5, 5],
-        tension: 0.4,
-        fill: false,
-        yAxisID: "y1",
+        pointRadius: 4,
+        pointBorderWidth: 2,
+        pointBorderColor: "#0ea5e9",
+        pointBackgroundColor: "#fff",
+        borderWidth: 2.5,
       },
     ],
   };
 
-  return <Line options={options} data={data} />;
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-slate-400">
+          <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Loading chart data…</span>
+        </div>
+      </div>
+    );
+  }
+
+  return <Line ref={chartRef} options={options} data={data} />;
 }

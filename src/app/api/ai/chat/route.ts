@@ -1,10 +1,14 @@
 /**
  * AI Chat API Route
- * Proxies to Supabase Edge Function and manages conversation persistence
+ * Proxies to Supabase Edge Function and manages conversation persistence.
+ * Security: rate limiting (20/hr) + prompt injection sanitization.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logAuditEvent } from '@/lib/supabase';
+import { sanitizeAIInput } from '@/lib/ai-security';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,11 +19,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Rate limit check
+    const rateLimit = await checkRateLimit(user.id);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded. You have reached the 20 requests/hour limit.',
+          retryAfter: Math.ceil((rateLimit.reset.getTime() - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimit.reset.getTime() - Date.now()) / 1000)),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const { message, conversationId, mode, provider, enableFallback, context } = body;
 
     if (!message || message.trim().length === 0) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+    }
+
+    // Sanitize input
+    const { sanitized, isValid, violations } = sanitizeAIInput(message);
+
+    if (!isValid) {
+      await logAuditEvent(
+        user.id,
+        'ai_request',
+        'ai_chat',
+        undefined,
+        'BLOCKED: prompt injection attempt',
+        { violations }
+      );
+      return NextResponse.json(
+        { error: 'Message contains disallowed content and was blocked.' },
+        { status: 400 }
+      );
     }
 
     // Get conversation history if conversation exists
@@ -46,7 +86,7 @@ export async function POST(request: NextRequest) {
         .from('ai_conversations')
         .insert({
           user_id: user.id,
-          title: message.substring(0, 50),
+          title: sanitized.substring(0, 50),
         })
         .select()
         .single();
@@ -66,9 +106,12 @@ export async function POST(request: NextRequest) {
           conversation_id: activeConversationId,
           user_id: user.id,
           role: 'user',
-          content: message,
+          content: sanitized,
         });
     }
+
+    // Audit log the AI request
+    await logAuditEvent(user.id, 'ai_request', 'ai_chat', activeConversationId, 'chat');
 
     // Call Supabase Edge Function
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -81,7 +124,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
       body: JSON.stringify({
-        message,
+        message: sanitized,
         conversationId: activeConversationId,
         userId: user.id,
         conversationHistory,
@@ -120,10 +163,14 @@ export async function POST(request: NextRequest) {
         });
     }
 
-    return NextResponse.json({
-      ...data,
-      conversationId: activeConversationId,
-    });
+    return NextResponse.json(
+      { ...data, conversationId: activeConversationId },
+      {
+        headers: {
+          'X-RateLimit-Remaining': String(rateLimit.remaining - 1),
+        },
+      }
+    );
   } catch (error) {
     console.error('AI Chat API error:', error);
     return NextResponse.json(
