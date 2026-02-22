@@ -16,14 +16,28 @@
 // ============================================================================
 
 /**
+ * Persona identifier for the Report Synthesizer.
+ * Each persona generates a different type of NDIS report.
+ */
+export type PersonaId = 'sc-level-2' | 'ssc-level-3' | 'prc' | 'ot' | 'progress-report';
+
+/**
  * Request payload for the Report Synthesizer feature.
  * Accepts raw report text and/or coordinator notes for AI synthesis.
  */
 export interface SynthesisRequest {
   /** Raw clinical report text to synthesize */
   reportText?: string;
+  /** Legacy compatibility: maps to reportText */
+  reportContent?: string;
   /** Support coordinator notes guiding the synthesis */
   coordinatorNotes?: string;
+  /** Selected persona for report generation */
+  personaId?: PersonaId;
+  /** Participant name for report header */
+  participantName?: string;
+  /** NDIS number for report header */
+  ndisNumber?: string;
 }
 
 /**
@@ -53,15 +67,34 @@ export interface ReportTemplateData {
 
 /**
  * Result from the Report Synthesizer AI call.
- * Returns either synthesized text or structured template data.
+ * Returns synthesized text with persona and model metadata.
  */
 export interface SynthesisResult {
+  /** Whether the synthesis was successful */
+  success: boolean;
   /** Free-form synthesized report text */
   synthesizedText?: string;
-  /** Structured template data for populating report templates */
+  /** Structured template data for populating report templates (legacy) */
   templateData?: ReportTemplateData;
+  /** Persona used for generation */
+  personaId?: PersonaId;
   /** AI model used for generation */
-  model: string;
+  model?: string;
+  /** Error message if synthesis failed */
+  error?: string;
+}
+
+/**
+ * History item for the Report Synthesizer.
+ * Represents a previously generated report.
+ */
+export interface SynthesisHistoryItem {
+  id: string;
+  title: string;
+  persona_id: PersonaId;
+  participant_name?: string;
+  synthesized_content: string;
+  created_at: string;
 }
 
 // ============================================================================
@@ -718,7 +751,11 @@ export function isSynthesisRequest(value: unknown): value is SynthesisRequest {
   const obj = value as Record<string, unknown>;
   return (
     (obj.reportText === undefined || typeof obj.reportText === 'string') &&
-    (obj.coordinatorNotes === undefined || typeof obj.coordinatorNotes === 'string')
+    (obj.reportContent === undefined || typeof obj.reportContent === 'string') &&
+    (obj.coordinatorNotes === undefined || typeof obj.coordinatorNotes === 'string') &&
+    (obj.personaId === undefined || typeof obj.personaId === 'string') &&
+    (obj.participantName === undefined || typeof obj.participantName === 'string') &&
+    (obj.ndisNumber === undefined || typeof obj.ndisNumber === 'string')
   );
 }
 

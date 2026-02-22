@@ -198,7 +198,7 @@ Ensure the cover letter:
       success: true,
       data: {
         coverLetterData: result.data,
-        model: result.model || 'gemini-2.0-flash',
+        model: result.model || 'gemini-2.5-flash',
       },
     });
   } catch (error) {

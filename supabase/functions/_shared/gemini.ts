@@ -16,18 +16,18 @@ export type ModelTier = 'premium' | 'standard';
 const GEMINI_CONFIGS = {
   // Premium tier: Gemini 2.5 Pro (limited usage - 2 per user per document type per 24h)
   premium: {
-    model: 'gemini-2.5-pro-preview-05-06',  // Gemini 2.5 Pro Preview
+    model: 'gemini-2.5-pro',
     temperature: 0.3,
     maxOutputTokens: 8192,
   },
-  // Standard tier: Gemini 2.0 Flash (unlimited usage)
+  // Standard tier: Gemini 2.5 Flash (unlimited usage)
   pro: {
-    model: 'gemini-2.0-flash-exp',  // Gemini 2.0 Flash
+    model: 'gemini-2.5-flash',
     temperature: 0.3,
     maxOutputTokens: 4096,
   },
   flash: {
-    model: 'gemini-2.0-flash-exp',  // Gemini 2.0 Flash
+    model: 'gemini-2.5-flash',
     temperature: 0.2,
     maxOutputTokens: 2048,
   },
@@ -46,6 +46,37 @@ const OLLAMA_CONFIGS = {
     maxTokens: 2048,
   },
 } as const;
+
+// Sanitize LLM JSON output (fix trailing commas, common syntax issues)
+function sanitizeJson(text: string): string {
+  let s = text.trim();
+  // Remove trailing commas before } or ]
+  s = s.replace(/,\s*([\]}])/g, '$1');
+  // Remove any BOM or zero-width characters
+  s = s.replace(/^\uFEFF/, '');
+  return s;
+}
+
+// Robust JSON parser with sanitization
+function parseJsonSafe<T>(text: string): T {
+  // Try direct parse first
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    // Try sanitized parse
+    const sanitized = sanitizeJson(text);
+    try {
+      return JSON.parse(sanitized) as T;
+    } catch {
+      // Try extracting JSON object from text
+      const objectMatch = sanitized.match(/\{[\s\S]*\}/);
+      if (objectMatch) {
+        return JSON.parse(sanitizeJson(objectMatch[0])) as T;
+      }
+      throw new Error('Failed to parse JSON response from model');
+    }
+  }
+}
 
 // Base persona for all clinical prompts
 const BASE_PERSONA = `You are a Senior Occupational Therapist and NDIS Compliance Expert with 15+ years of clinical experience. You specialize in functional capacity assessments (FCA), assistive technology (AT) prescriptions, and complex home modifications. Your writing style is professional, objective, and rigorously aligned with NDIS Practice Standards. You never hallucinate clinical data; if evidence is missing, you flag it explicitly.`;
@@ -110,13 +141,14 @@ export class GeminiClient {
     return client.getGenerativeModel({ model: config.model });
   }
 
-  private getGeminiGenerationConfig(type: ModelType): GenerationConfig {
+  private getGeminiGenerationConfig(type: ModelType, parseAsJson: boolean = false): GenerationConfig {
     const config = GEMINI_CONFIGS[type];
     return {
       temperature: config.temperature,
       maxOutputTokens: config.maxOutputTokens,
       topP: 0.95,
       topK: 40,
+      ...(parseAsJson ? { responseMimeType: 'application/json' as const } : {}),
     };
   }
 
@@ -196,7 +228,7 @@ export class GeminiClient {
   ): Promise<AIResponse<T>> {
     try {
       const model = this.getGeminiModel(modelType);
-      const generationConfig = this.getGeminiGenerationConfig(modelType);
+      const generationConfig = this.getGeminiGenerationConfig(modelType, parseAsJson);
 
       const fullPrompt = `${BASE_PERSONA}\n\n${systemPrompt}\n\n---\n\nUser Input:\n${prompt}`;
 
@@ -209,22 +241,13 @@ export class GeminiClient {
       const text = response.text();
 
       if (parseAsJson) {
-        // Extract JSON from response (handle markdown code blocks)
-        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, text];
-        const jsonString = jsonMatch[1] || text;
-
-        try {
-          const parsed = JSON.parse(jsonString.trim()) as T;
-          return { success: true, data: parsed, model: GEMINI_CONFIGS[modelType].model, provider: 'gemini' };
-        } catch {
-          // Try to find JSON object or array in the response
-          const objectMatch = jsonString.match(/\{[\s\S]*\}/) || jsonString.match(/\[[\s\S]*\]/);
-          if (objectMatch) {
-            const parsed = JSON.parse(objectMatch[0]) as T;
-            return { success: true, data: parsed, model: GEMINI_CONFIGS[modelType].model, provider: 'gemini' };
-          }
-          throw new Error('Failed to parse JSON response');
+        let jsonString = text.trim();
+        const codeBlockMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          jsonString = codeBlockMatch[1].trim();
         }
+        const parsed = parseJsonSafe<T>(jsonString);
+        return { success: true, data: parsed, model: GEMINI_CONFIGS[modelType].model, provider: 'gemini' };
       }
 
       return { success: true, data: text as T, model: GEMINI_CONFIGS[modelType].model, provider: 'gemini' };
@@ -299,7 +322,7 @@ export class GeminiClient {
     return !!Deno.env.get('GEMINI_API_KEY');
   }
 
-  // Generate with specific model tier (premium = Pro, standard = Flash)
+  // Generate with specific model tier using REST API for full control
   async generateWithTier<T = string>(
     prompt: string,
     systemPrompt: string,
@@ -307,46 +330,60 @@ export class GeminiClient {
     parseAsJson: boolean = false
   ): Promise<AIResponse<T>> {
     try {
-      const client = this.initializeGemini();
+      const apiKey = Deno.env.get('GEMINI_API_KEY');
+      if (!apiKey) throw new Error('GEMINI_API_KEY secret is not configured');
+
       const config = tier === 'premium' ? GEMINI_CONFIGS.premium : GEMINI_CONFIGS.pro;
-
       console.log(`[Gemini] Using ${tier} tier with model: ${config.model}`);
-
-      const model = client.getGenerativeModel({ model: config.model });
-      const generationConfig: GenerationConfig = {
-        temperature: config.temperature,
-        maxOutputTokens: config.maxOutputTokens,
-        topP: 0.95,
-        topK: 40,
-      };
 
       const fullPrompt = `${BASE_PERSONA}\n\n${systemPrompt}\n\n---\n\nUser Input:\n${prompt}`;
 
-      const result = await model.generateContent({
+      // Build request body with full JSON mode and thinking budget control
+      const requestBody: Record<string, unknown> = {
         contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
-        generationConfig,
+        generationConfig: {
+          temperature: config.temperature,
+          maxOutputTokens: config.maxOutputTokens,
+          topP: 0.95,
+          topK: 40,
+          ...(parseAsJson ? { responseMimeType: 'application/json' } : {}),
+          // Limit thinking budget to reduce JSON corruption from thinking tokens
+          ...(parseAsJson ? { thinkingConfig: { thinkingBudget: 1024 } } : {}),
+        },
+      };
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
       });
 
-      const response = result.response;
-      const text = response.text();
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Gemini API ${response.status}: ${errorBody}`);
+      }
+
+      const result = await response.json();
+      const candidate = result.candidates?.[0];
+      if (!candidate?.content?.parts?.length) {
+        throw new Error('No content in Gemini response');
+      }
+
+      // Extract text from parts (skip thinking parts)
+      const textParts = candidate.content.parts.filter(
+        (p: { text?: string; thought?: boolean }) => p.text && !p.thought
+      );
+      const text = textParts.map((p: { text: string }) => p.text).join('');
 
       if (parseAsJson) {
-        // Extract JSON from response (handle markdown code blocks)
-        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, text];
-        const jsonString = jsonMatch[1] || text;
-
-        try {
-          const parsed = JSON.parse(jsonString.trim()) as T;
-          return { success: true, data: parsed, model: config.model, provider: 'gemini' };
-        } catch {
-          // Try to find JSON object or array in the response
-          const objectMatch = jsonString.match(/\{[\s\S]*\}/) || jsonString.match(/\[[\s\S]*\]/);
-          if (objectMatch) {
-            const parsed = JSON.parse(objectMatch[0]) as T;
-            return { success: true, data: parsed, model: config.model, provider: 'gemini' };
-          }
-          throw new Error('Failed to parse JSON response');
+        let jsonString = text.trim();
+        const codeBlockMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          jsonString = codeBlockMatch[1].trim();
         }
+        const parsed = parseJsonSafe<T>(jsonString);
+        return { success: true, data: parsed, model: config.model, provider: 'gemini' };
       }
 
       return { success: true, data: text as T, model: config.model, provider: 'gemini' };

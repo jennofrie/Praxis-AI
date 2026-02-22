@@ -27,7 +27,46 @@ export type AuditDocumentType =
 export type AuditStatus = 'excellent' | 'good' | 'needs_improvement' | 'critical' | 'security_blocked';
 
 /**
+ * Rich structured item types for enhanced audit output
+ */
+export interface StrengthItem {
+  category: string;
+  finding: string;
+  section34Reference: string;
+  quote: string;
+  quoteLocation: string;
+}
+
+export interface ImprovementItem {
+  category: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  finding: string;
+  remediation: string;
+  section34Reference: string;
+  quote: string;
+  quoteLocation: string;
+}
+
+export interface RedFlagItem {
+  flag: string;
+  reason: string;
+  section34Reference: string;
+  riskLevel: 'high' | 'critical';
+  quote: string;
+  quoteLocation: string;
+}
+
+export interface MainstreamInterfaceCheck {
+  healthSystemRisk: boolean;
+  educationSystemRisk: boolean;
+  housingSystemRisk: boolean;
+  justiceSystemRisk: boolean;
+  notes: string;
+}
+
+/**
  * Section 34 Audit Result from AI
+ * Supports both legacy (string[]) and rich (StructuredItem[]) formats
  */
 export interface AuditResult {
   // Overall Assessment
@@ -39,17 +78,23 @@ export interface AuditResult {
     compliance: number;      // NDIS Act & Rules compliance
     nexus: number;           // Link between disability & supports
     valueForMoney: number;   // VFM demonstration
-    evidence: number;        // Quality of clinical evidence
+    evidence: number;        // Quality of clinical evidence (maps from evidenceQuality in EF)
     significantChange: number; // Change documentation (if applicable)
   };
 
   // AI-Generated Content
   plannerSummary: string;    // Executive summary for planners
-  strengths: string[];       // What's done well
-  improvements: string[];    // Areas to improve
-  redFlags: string[];        // Critical issues requiring attention
+  strengths: (StrengthItem | string)[];       // What's done well
+  improvements: (ImprovementItem | string)[];    // Areas to improve
+  redFlags: (RedFlagItem | string)[];        // Critical issues requiring attention
   languageFixes: LanguageFix[]; // Suggested language corrections
   plannerQuestions: string[]; // Questions a planner might ask
+
+  // Mainstream interface check (APTOS)
+  mainstreamInterfaceCheck?: MainstreamInterfaceCheck;
+
+  // Assessment tools found in document
+  assessmentToolsUsed?: string[];
 
   // Security/Content Restriction
   contentRestriction?: boolean; // True if non-NDIS content detected
@@ -68,7 +113,9 @@ export interface LanguageFix {
   original: string;
   suggested: string;
   reason: string;
-  category: 'clinical_language' | 'ndis_terminology' | 'clarity' | 'objectivity';
+  category?: 'clinical_language' | 'ndis_terminology' | 'clarity' | 'objectivity';
+  section34Impact?: string;
+  quoteLocation?: string;
 }
 
 /**
@@ -102,9 +149,9 @@ export interface ReportAudit extends BaseEntity {
 
   // AI Results (stored as JSONB)
   plannerSummary: string;
-  strengths: string[];
-  improvements: string[];
-  redFlags: string[];
+  strengths: (StrengthItem | string)[];
+  improvements: (ImprovementItem | string)[];
+  redFlags: (RedFlagItem | string)[];
   languageFixes: LanguageFix[];
   plannerQuestions: string[];
 

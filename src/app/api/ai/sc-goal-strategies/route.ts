@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
     const strategiesResult: SCGoalStrategiesResult = {
       strategies: result.data,
-      model: result.model || 'gemini-2.0-flash',
+      model: result.model || 'gemini-2.5-flash',
     };
 
     console.log('[SC Goal Strategies] Success for user:', user.id, '| Goals:', goals.length);

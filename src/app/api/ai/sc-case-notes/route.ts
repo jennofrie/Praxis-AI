@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     const caseNoteResult: CaseNoteResult = {
       success: true,
       caseNote: result.data,
-      model: result.model || 'gemini-2.0-flash',
+      model: result.model || 'gemini-2.5-flash',
     };
 
     console.log('[SC Case Notes] Success for user:', user.id, '| Type:', type);

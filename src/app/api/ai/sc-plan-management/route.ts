@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         result: planManagementResult,
-        modelUsed: result.model || 'gemini-2.0-flash',
+        modelUsed: result.model || 'gemini-2.5-flash',
       },
     });
   } catch (error) {

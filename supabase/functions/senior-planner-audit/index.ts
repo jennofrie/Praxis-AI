@@ -95,7 +95,7 @@ interface AuditResult {
     compliance: number;
     nexus: number;
     valueForMoney: number;
-    evidenceQuality: number;
+    evidence: number;
     significantChange: number | null;
   };
   plannerSummary: string;
@@ -402,7 +402,7 @@ Perform your 3-pass analysis (Skeptic → Validator → Outcome Predictor) and o
         compliance: Math.max(0, Math.min(100, data.scores?.compliance || 0)),
         nexus: Math.max(0, Math.min(100, data.scores?.nexus || 0)),
         valueForMoney: Math.max(0, Math.min(100, data.scores?.valueForMoney || 0)),
-        evidenceQuality: Math.max(0, Math.min(100, data.scores?.evidenceQuality || 0)),
+        evidence: Math.max(0, Math.min(100, data.scores?.evidenceQuality || data.scores?.evidence || 0)),
         significantChange: data.scores?.significantChange !== null
           ? Math.max(0, Math.min(100, data.scores?.significantChange || 0))
           : null,

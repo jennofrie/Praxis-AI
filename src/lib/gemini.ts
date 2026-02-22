@@ -12,12 +12,12 @@ export type AIProvider = 'gemini' | 'ollama';
 // Gemini model configurations
 const GEMINI_CONFIGS = {
   pro: {
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-flash',
     temperature: 0.3,
     maxOutputTokens: 4096,
   },
   flash: {
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-flash',
     temperature: 0.2,
     maxOutputTokens: 2048,
   },

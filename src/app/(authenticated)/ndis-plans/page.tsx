@@ -41,7 +41,8 @@ interface NDISPlanDB {
   created_at: string;
   participants?: {
     id: string;
-    full_name: string;
+    first_name: string;
+    last_name: string;
     ndis_number: string;
   };
 }
@@ -102,7 +103,8 @@ export default function NDISPlans() {
           created_at,
           participants (
             id,
-            full_name,
+            first_name,
+            last_name,
             ndis_number
           )
         `)
@@ -124,7 +126,9 @@ export default function NDISPlans() {
         return {
           id: plan.id,
           participant_id: plan.participant_id,
-          participant_name: plan.participants?.full_name || 'Unknown',
+          participant_name: plan.participants
+            ? `${plan.participants.first_name} ${plan.participants.last_name}`.trim()
+            : 'Unknown',
           ndis_number: plan.participants?.ndis_number || plan.plan_number,
           plan_start_date: plan.start_date,
           plan_end_date: plan.end_date,
@@ -144,8 +148,9 @@ export default function NDISPlans() {
 
       setPlans(transformedPlans);
     } catch (err) {
-      console.error('Error loading plans:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load plans');
+      console.error('Error loading plans:', JSON.stringify(err), err);
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message || 'Failed to load plans';
+      setError(msg);
     } finally {
       setLoading(false);
     }

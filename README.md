@@ -17,7 +17,9 @@ Praxis AI (branded as **Praxis AI Platform**) is a modern, AI-powered clinical w
 - **AI-Powered Reports**: Automated generation of clinical reports with confidence scoring and human review workflows
 - **NDIS Compliance**: Built-in support for NDIS plans, audits, and regulatory requirements
 - **Allied Toolkit**: 8 specialized AI tools for OTs and allied health professionals
-- **SC Toolkit (NEW)**: 9 complete AI tools for NDIS Support Coordinators with full backend
+- **SC Toolkit**: 9 complete AI tools for NDIS Support Coordinators with full backend
+- **Senior Planner Audit**: Enterprise-grade §34 compliance auditor with 3-pass AI pipeline, rich structured findings, and navy clinical PDF export
+- **Report Synthesizer**: 5-persona professional NDIS report writer (SC L2, SSC L3, Plan Review, OT, Progress Report) with drag-and-drop multi-file upload and PDF export
 - **Dark Mode Support**: Full light/dark theme support for comfortable extended use
 - **Real-time Collaboration**: Multi-user support with role-based access control
 
@@ -45,8 +47,8 @@ Praxis AI is architected to support thousands of concurrent users while maintain
 ### Backend
 - **Supabase** - PostgreSQL database with Row Level Security
 - **Supabase Edge Functions** - Serverless Deno functions for AI processing
-- **Google Gemini AI** - Multi-tiered AI models (2.5 Pro, 2.0 Flash, 1.5 Flash)
-- **15 Edge Functions** - Deployed for Allied Toolkit and SC Toolkit features
+- **Google Gemini AI** - Multi-tiered AI models: **Gemini 2.5 Pro** (premium/audit), **Gemini 2.5 Flash** (standard)
+- **17+ Edge Functions** - Deployed for Allied Toolkit, SC Toolkit, Senior Planner Audit, and Report Synthesizer
 
 ### Design System
 - Custom color palette optimized for clinical workflows

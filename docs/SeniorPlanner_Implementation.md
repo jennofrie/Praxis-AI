@@ -18,10 +18,22 @@
 ## Section 34 Auditor Flow
 1. **Input**: User selects document type and either pastes text or uploads `.txt/.docx/.pdf` (PDF encoded base64). State: `documentContent`, `fileData`, `fileMimeType`, `documentType`, `documentName`.
 2. **Submit**: `handleAudit()` builds request with text or PDF and calls Supabase Edge Function `senior-planner-audit` via `supabase.functions.invoke`. Loading flags `isAuditing` etc.
-3. **Response Shape** (`AuditResult`): overallScore, status, sub-scores (compliance/nexus/vfm/evidence/significantChange), plannerSummary, strengths[], improvements[], redFlags[], languageFixes[], plannerQuestions[]. Special path `contentRestriction` yields security-blocked result.
-4. **Persistence**: On success, inserts into `report_audits` table (fields: user_id, document_type/name/content, scores, status, strengths, improvements, red_flags, language_fixes, planner_questions, planner_summary).
-5. **Display**: Gauges, strengths/improvements, red flags, language converter, planner questions, security messaging. History side panel loads last 20 audits from `report_audits` and can hydrate UI with a selected record.
-6. **Exports/Sharing**:
+3. **Response Shape** (`AuditResult`): overallScore, status, sub-scores (compliance/nexus/vfm/evidence/significantChange), plannerSummary, plus rich union arrays:
+   - `strengths: (StrengthItem | string)[]` — each `StrengthItem` has `title`, `explanation`, `section34Reference`, `quote?`
+   - `improvements: (ImprovementItem | string)[]` — each has `title`, `description`, `severity` (critical/high/medium/low), `section34Reference`, `quote?`
+   - `redFlags: (RedFlagItem | string)[]` — each has `title`, `description`, `riskLevel`, `quote?`
+   - `mainstreamInterfaceCheck?: MainstreamInterfaceCheck` — health/education/housing/justice risk domains
+   - `assessmentToolsUsed?: string[]`
+   - `languageFixes: LanguageFix[]` — each fix now has optional `quoteLocation`, `category`, `section34Impact`
+   - Special path `contentRestriction` yields security-blocked result.
+4. **AI Backend** (`senior-planner-audit` Edge Function):
+   - Uses **Gemini 2.5 Pro** via direct REST API with `responseMimeType: 'application/json'` and `thinkingBudget: 1024`
+   - `sanitizeJson()` strips trailing commas and thinking-token artifacts before parsing
+   - 3-pass audit: Skeptic Analyst → Evidence Validator → Outcome Predictor
+   - System prompt enforces §34(1)(a–f) with concrete examples, quote integrity rules, prompt injection defence, and self-check before responding
+5. **Persistence**: On success, inserts into `report_audits` table (fields: user_id, document_type/name/content, scores, status, strengths, improvements, red_flags, language_fixes, planner_questions, planner_summary).
+6. **Display**: Gauges, strengths/improvements, red flags, language converter, planner questions, security messaging. History side panel loads last 20 audits from `report_audits` and can hydrate UI with a selected record.
+7. **Exports/Sharing**:
    - `exportSeniorPlannerPdf(auditResult, documentName, docTypeLabel, skipDownload?)` renders jsPDF report; `skipDownload` allows reuse for RAG upload.
    - Super-admin only "Save to RAG" triggers duplicate check (`rag-agent` Edge Function action `check_duplicate`); if OK uploads PDF to Supabase bucket `spectra-reports/reports/` and calls `rag-agent` action `trigger_indexing`.
 
@@ -39,16 +51,28 @@
 - Current page redirect uses `!permissions.canAccessBudgetForecaster` before load; adjust to `canAccessSeniorPlanner` when porting.
 
 ## Supabase Dependencies
-- Edge Functions: `senior-planner-audit`, `coc-eligibility-assessor`, `rag-agent` (actions `check_duplicate`, `trigger_indexing`).
-- Tables: `report_audits` (audit history), `coc_assessments` (CoC history), `profiles` (subscription tier). Auth required for inserts/uploads.
+- Edge Functions: `senior-planner-audit`, `coc-eligibility-assessor`, `synthesize-report`, `rag-agent` (actions `check_duplicate`, `trigger_indexing`).
+- Tables: `report_audits` (audit history), `coc_assessments` (CoC history), `synthesized_reports` (report synthesizer — with `persona_id`, `participant_name`, `ndis_number` columns, auto-cleanup trigger keeping last 10 per user), `profiles` (subscription tier). Auth required for inserts/uploads.
 - Storage bucket: `spectra-reports` with `reports/` prefix for PDF uploads.
+- Shared utilities: `_shared/gemini.ts` (`generateWithTier`, `parseJsonSafe`, `sanitizeJson`) and `_shared/cors.ts`.
 
 ## File Handling & Validation
 - Uploads: `.pdf` -> base64; `.docx` via `mammoth.extractRawText`; `.txt` via `File.text()`. Guards for short inputs, unsupported types, and legacy `.doc` prompt.
 - Content restriction: both tools render security-blocked UI and inject red flags/questions when Edge Function signals non-NDIS content.
 
 ## PDF Generation Highlights
-- jsPDF layout uses ASCII sanitization; gauges drawn via line segments; glossary of NDIS terms appended; returns `{ filename, pdfBlob }` for download or RAG upload.
+- **Enterprise navy/blue clinical theme**: primary `#142341`, accent `#2562B4`
+- Gradient navy header (25mm) with tool title, score circle with segmented arc colouring, 2-column horizontal gauges for 5 sub-scores
+- Strengths: green left accent bar + category badge + §34 reference badge + italic participant quote
+- Improvements: amber left accent bar + severity badge (colour-coded: Critical=red, High=orange, Medium=amber, Low=green)
+- Red Flags: red left accent bar + red background highlight + risk level badge
+- Language Converter: two-column table (red ORIGINAL / green SUGGESTED column headers)
+- Planner Questions: purple left accent bar with numbered circle bullets
+- Mainstream Interface Check: 4-box grid (Health / Education / Housing / Justice risk domains)
+- NDIS Glossary: 15 entries in two-column striped table
+- `ensureSpace(mm)` helper triggers smart page breaks before sections
+- Handles both `string[]` (legacy) and rich object arrays for strengths/improvements/redFlags
+- Returns `{ filename, pdfBlob }` for download or RAG upload.
 
 ## Integration Tips (porting to another B2B SaaS)
 1. **Replicate Edge Functions**: Implement endpoints compatible with the request/response shapes above; preserve `contentRestriction` flag for guardrails.

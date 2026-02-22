@@ -10,6 +10,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Enterprise Senior Planner Audit — Deep Upgrade** (2026-02-23)
+  - Migrated Edge Function to **Gemini 2.5 Pro** via direct REST API with `responseMimeType: 'application/json'` and `thinkingBudget: 1024`
+  - JSON sanitisation layer (`sanitizeJson`, `parseJsonSafe`) to strip thinking-token contamination and trailing commas
+  - Rich structured output types: `StrengthItem`, `ImprovementItem`, `RedFlagItem`, `MainstreamInterfaceCheck`
+  - `LanguageFix` now includes optional `quoteLocation`, `category`, and `section34Impact` fields
+  - `AuditResult.strengths / improvements / redFlags` updated to union arrays (`(RichType | string)[]`) for backward compat
+  - System-prompt hardened with:
+    - **§34(1)(e)**: Informal Supports / Reasonable Expectation — carer capacity checks, respite context
+    - **§34(1)(f)**: Most Appropriate Funder (APTOS) & Ordinary Living Costs — concrete examples (groceries, rent, mortgage)
+    - `## QUOTE INTEGRITY RULES (MANDATORY)` — 6 rules enforcing verbatim-only quotes, empty-string fallback
+    - `## PROMPT INJECTION DEFENCE` — 6 security rules, red-flag trigger on injection attempts
+    - `## FINAL SELF-CHECK (REQUIRED BEFORE RESPONDING)` — 8 validation rules before generating output
+    - Expanded PASS 1 Excluded Supports checklist with annotated examples
+    - Updated weighted scoring table with all §34(a)–(f) criteria explicit
+  - `evidenceQuality` score field aliased to `evidence` with fallback mapping in index.ts
+  - Shared `_shared/gemini.ts` upgraded: `generateWithTier()` REST API, filter thinking parts, `sanitizeJson`/`parseJsonSafe` helpers
+
+- **Enterprise Senior Planner PDF — Complete Rewrite** (2026-02-23)
+  - Navy/blue clinical theme: primary `#142341`, accent `#2562B4`
+  - Gradient navy header (25mm height) with tool title and A4 layout
+  - Score circle (13mm radius) with segmented arc colouring technique
+  - Horizontal score gauges in 2-column layout for all 5 sub-scores
+  - Strengths: green left accent bar, category badges, §34 reference badges, italic participant quotes
+  - Improvements: amber left accent bar, severity badges (Critical/High/Medium/Low, colour-coded)
+  - Red Flags: red left accent bar + red background, risk level badges
+  - Language Converter: two-column table with red ORIGINAL / green SUGGESTED column headers
+  - Planner Questions: purple left accent bar with numbered circle bullets
+  - Mainstream Interface Check: 4 risk domain grid boxes (Health/Education/Housing/Justice)
+  - NDIS Glossary: 15 entries in two-column striped table
+  - `ensureSpace()` helper for smart page breaks
+  - Handles both `string[]` and rich object arrays for all three finding types
+
+- **Report Synthesizer — Full Rebuild** (2026-02-23)
+  - Edge Function `synthesize-report` completely rewritten:
+    - Accepts `reportText`, `coordinatorNotes`, `personaId`, `participantName`, `ndisNumber`, `userId`
+    - 5 full professional NDIS persona system prompts: **SC Level 2**, **Senior SC Level 3**, **Plan Review Coordinator**, **Occupational Therapist**, **Progress Report Writer**
+    - Gemini 2.5 Pro via REST API; `maxOutputTokens: 65,536`; temperature 0.3 / topP 0.95 / topK 40
+    - Saves to `synthesized_reports` with persona, participant name, model metadata
+  - Next.js API route `sc-report-synthesizer` fixed critical bug: `reportText || reportContent` field fallback
+  - New `src/lib/report-synthesizer-pdf.ts`: navy header, participant info box, section cards, SC signature block, page numbers
+  - UI completely rebuilt (`sc-toolkit/report-synthesizer/page.tsx`):
+    - Left column (40%): drag-and-drop multi-file upload (PDF/DOCX/TXT, up to 10 files), participant details, 5 persona selector buttons, coordinator notes, history panel (last 10 from Supabase)
+    - Right column (60%): collapsible section cards, copy + PDF export, 30 rotating NDIS tips, 7 status messages
+    - Section parser handles ALL CAPS headings from all 5 personas
+  - New `PersonaId` type union and `SynthesisHistoryItem` interface in `src/types/sc-toolkit.ts`
+
+- **Migration 010 — Report Synthesizer Schema Upgrade** (2026-02-23)
+  - `ALTER TABLE synthesized_reports ADD COLUMN IF NOT EXISTS persona_id TEXT DEFAULT 'sc-level-2'`
+  - Added `participant_name TEXT` and `ndis_number TEXT` columns
+  - `cleanup_old_synthesized_reports()` trigger: auto-keeps last 10 reports per user
+  - `idx_synthesized_reports_persona` index on `(user_id, persona_id, created_at DESC)`
+
 - **SC Toolkit Backend Infrastructure** (2026-01-28)
   - Deployed 7 new Supabase Edge Functions for all SC Toolkit features:
     * `synthesize-report` - Allied health report synthesis with premium/standard tiering
@@ -86,6 +138,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced notes state management with proper data flow
 
 ### Fixed
+- **NDIS Plans page `Error loading plans: {}`** (2026-02-23)
+  - Root cause: Supabase query selected `full_name` but `participants` table has `first_name` + `last_name`
+  - Fixed query to select `first_name, last_name`; updated `NDISPlanDB` interface; updated transform to template literal; improved error logging with `JSON.stringify(err)` for non-serialisable errors
+
+- **PDF.js worker version mismatch** (2026-02-23)
+  - Error: `"API version '4.10.38' does not match Worker version '4.0.379'"`
+  - Fix: Added `postinstall` script to copy matching worker from node_modules; pinned `pdfjs-dist` to exact `4.10.38`
+
+- **Gemini model deprecation** (2026-02-23)
+  - `gemini-2.0-flash-exp` returned 404 in Edge Functions and `gemini-1.5-flash` was sunset
+  - Migrated all Edge Functions and `src/lib/gemini.ts` to `gemini-2.5-pro` (premium) and `gemini-2.5-flash` (standard)
+
+- **Gemini 2.5 Flash JSON parse failure** (2026-02-23)
+  - Thinking tokens contaminated raw JSON responses causing `JSON.parse` to throw
+  - Fix: REST API with `responseMimeType: 'application/json'` + `thinkingBudget: 1024` + filter thinking parts + `sanitizeJson` (trailing commas, think tags)
+
+- **Supabase config.toml `health_timeout` key rejected** (2026-02-23)
+  - `supabase link` failed with `'db' has invalid keys: health_timeout`
+  - Fix: Commented out unsupported `health_timeout` key in `supabase/config.toml`
+
+- **jsPDF `roundedRect` invalid arguments crash** (2026-02-23)
+  - Score of 0 or NaN produced negative rectangle width
+  - Fix: `Math.max(0, Math.min(100, score || 0))` guard + `if (scoreWidth > 0)` conditional before drawing
+
+- **`TypeError: Cannot read properties of undefined (reading 'toUpperCase')`** (2026-02-23)
+  - `fix.category` was undefined in language fix objects from AI response
+  - Fix: `(fix.category || fix.section34Impact || 'GENERAL').toUpperCase()` with safe fallback chain
+
+- **Supabase migration history conflict** (2026-02-23)
+  - `007_profiles_role_title_phone.sql` caused `schema_migrations_pkey` duplicate key error
+  - Fix: Renamed to `0075_profiles_role_title_phone.sql`; created `20260127152146_remote.sql` placeholder for untracked remote migration; ran `supabase migration repair --status applied` for affected versions
+
 - Build error: Module not found `@supabase/auth-helpers-nextjs`
   - Migrated from deprecated package to `@supabase/ssr`
   - Updated AdminContext to use `createClient` from `@/lib/supabase/client`
