@@ -1,10 +1,10 @@
 # Contributing to Praxis AI
 
-> Guidelines for contributing to the Praxis AI project
+> Guidelines for contributing to the Praxis AI platform
 
-**Maintained by**: JD Digital Systems
+**Maintained by**: [JD Digital Systems](https://jddigitalsystems.com)
 
-Thank you for your interest in contributing to Praxis AI! This document provides guidelines and best practices for contributing to the project.
+Thank you for your interest in contributing to Praxis AI. This document provides guidelines and best practices for contributing to a production clinical platform serving NDIS healthcare professionals.
 
 ---
 
@@ -91,10 +91,10 @@ Before contributing, ensure you have:
 
 ### Project Structure
 
-Familiarize yourself with the project structure:
-- See [ARCHITECTURE.md](./ARCHITECTURE.md) for system architecture
-- See [CLAUDE.md](./CLAUDE.md) for AI development guidelines
-- See [README.md](./README.md) for project overview
+Familiarise yourself with the project structure:
+- See [ARCHITECTURE.md](./docs/ARCHITECTURE.md) for system architecture and data models
+- See [API.md](./docs/API.md) for Edge Function and API reference
+- See [README.md](./README.md) for full platform overview
 
 ---
 
@@ -104,7 +104,7 @@ Familiarize yourself with the project structure:
 
 We use Git Flow with the following branches:
 
-- **`main`**: Production-ready code
+- **`master`**: Production-ready code (default branch)
 - **`develop`**: Integration branch for features
 - **`feature/*`**: New features (e.g., `feature/participant-search`)
 - **`bugfix/*`**: Bug fixes (e.g., `bugfix/report-generation`)
@@ -588,10 +588,9 @@ async function generateReport(
 When making changes, update relevant documentation:
 
 - **README.md**: For user-facing changes
-- **ARCHITECTURE.md**: For architectural changes
-- **CLAUDE.md**: For AI development patterns
-- **API.md**: For API changes
-- **CHANGELOG.md**: For all changes
+- **docs/ARCHITECTURE.md**: For architectural changes
+- **docs/API.md**: For API or Edge Function changes
+- **CHANGELOG.md**: For all notable changes
 
 ---
 
@@ -646,4 +645,4 @@ Thank you for contributing to Praxis AI and helping improve healthcare workflows
 ---
 
 **Maintained by**: JD Digital Systems Development Team
-**Last Updated**: January 2026
+**Last Updated**: May 2026

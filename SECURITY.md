@@ -2,7 +2,7 @@
 
 > Security policies and vulnerability reporting for Praxis AI
 
-**Maintained by**: JD Digital Systems Security Team
+**Maintained by**: [JD Digital Systems](https://jddigitalsystems.com) Security Team
 
 ---
 
@@ -23,13 +23,10 @@
 
 We actively support and provide security updates for the following versions:
 
-| Version | Supported          | End of Support |
-| ------- | ------------------ | -------------- |
-| 1.x.x   | :white_check_mark: | TBD            |
-| 0.4.x   | :white_check_mark: | June 2026      |
-| 0.3.x   | :white_check_mark: | March 2026     |
-| 0.2.x   | :x:                | Ended          |
-| 0.1.x   | :x:                | Ended          |
+| Version | Supported | Notes |
+|---|---|---|
+| Unreleased (master) | Yes | Active development branch |
+| 0.1.x | Limited | Critical security patches only |
 
 **Note**: Security patches are backported to supported versions for critical and high-severity vulnerabilities only.
 
@@ -138,13 +135,14 @@ We appreciate security researchers and offer:
 
 #### Authentication & Authorization
 ```typescript
-// ✅ GOOD: Proper authentication check
-import { getServerSession } from 'next-auth';
+// ✅ GOOD: Proper authentication check with Supabase
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: Request) {
-  const session = await getServerSession();
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (!session || !session.user) {
+  if (error || !user) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -211,10 +209,10 @@ const sanitized = DOMPurify.sanitize(userInput);
 #### Secrets Management
 ```typescript
 // ✅ GOOD: Environment variables
-const apiKey = process.env.ANTHROPIC_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY;
 
 // ❌ BAD: Hardcoded secrets
-const apiKey = 'sk-ant-123456789'; // NEVER commit secrets!
+const apiKey = 'AIzaSy...'; // NEVER commit secrets!
 ```
 
 #### CSRF Protection
@@ -396,29 +394,23 @@ export async function POST(request: Request) {
 ### Authorization Checks
 
 ```typescript
-// ✅ GOOD: Check authorization for every request
-async function getParticipant(id: string, userId: string) {
-  // 1. Fetch resource
-  const participant = await db.participant.findUnique({ where: { id } });
+// ✅ GOOD: Supabase RLS enforces authorization automatically.
+// Always use the user-scoped client so RLS policies apply.
+async function getParticipant(supabase: SupabaseClient, id: string) {
+  const { data, error } = await supabase
+    .from('participants')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  if (!participant) {
-    throw new NotFoundError();
-  }
-
-  // 2. Check authorization
-  const hasAccess = await checkAccess(userId, participant.id);
-
-  if (!hasAccess) {
-    throw new UnauthorizedError();
-  }
-
-  return participant;
+  if (error || !data) throw new NotFoundError();
+  return data; // RLS guarantees the row belongs to auth.uid()
 }
 
-// ❌ BAD: No authorization check
-async function getParticipant(id: string) {
-  return await db.participant.findUnique({ where: { id } });
-  // Anyone can access any participant!
+// ❌ BAD: Using the service-role client bypasses RLS entirely
+async function getParticipant(serviceClient: SupabaseClient, id: string) {
+  return serviceClient.from('participants').select('*').eq('id', id).single();
+  // Service role bypasses RLS — anyone can read any participant!
 }
 ```
 
@@ -552,8 +544,8 @@ All team members complete:
 
 ---
 
-**Last Updated**: January 25, 2026
-**Next Review**: April 2026
+**Last Updated**: May 2026
+**Next Review**: November 2026
 **Maintained by**: JD Digital Systems Security Team
 
 ---

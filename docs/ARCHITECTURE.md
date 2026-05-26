@@ -427,11 +427,11 @@ async function generateReport(participantId: string, type: ReportType) {
   // 2. Build prompt
   const prompt = buildReportPrompt(participant, history, type);
 
-  // 3. Call AI service
-  const aiResponse = await anthropic.messages.create({
-    model: 'claude-3-sonnet-20240229',
-    max_tokens: 4096,
-    messages: [{ role: 'user', content: prompt }],
+  // 3. Call AI service via Edge Function
+  const aiResponse = await fetch(`${process.env.SUPABASE_URL}/functions/v1/generate-report`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantId, type, prompt }),
   });
 
   // 4. Parse and validate response
@@ -691,10 +691,10 @@ logger.info('Report generated', {
 **Rationale**: ACID compliance, rich ecosystem, JSON support, full-text search
 **Consequences**: Need to manage scaling, replication, backups
 
-### ADR-003: Claude AI for Report Generation
-**Decision**: Use Anthropic Claude API for AI-powered reports
-**Rationale**: High-quality output, strong reasoning, healthcare-appropriate responses
-**Consequences**: API costs, dependency on third-party service, rate limits
+### ADR-003: Google Gemini for AI Processing
+**Decision**: Use Google Gemini 2.5 Pro (premium) and 2.5 Flash (standard) for all AI-powered features
+**Rationale**: High-quality structured output, native JSON mode, thinking budget controls, strong reasoning for NDIS compliance workflows
+**Consequences**: API costs, dependency on third-party service, rate limits managed via `ai_rate_limits` table
 
 ### ADR-004: Tailwind CSS
 **Decision**: Use Tailwind CSS for styling
